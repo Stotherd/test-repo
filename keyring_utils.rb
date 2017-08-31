@@ -1,26 +1,28 @@
-
-require 'keyring'
-
 class KeyringUtils
 
     def initialize(logger)
         $logger = logger
     end
-    $keyring = Keyring.new
 
     def set_token(app_name, token)
-        $keyring.delete_password(app_name, ENV['USER'])
-        $keyring.set_password(app_name, ENV['USER'], token)
-        $logger.info "SCRIPT_LOGGER:: OAuth Key added to keychain"
+        self.remove_token(app_name)
+        if system("security add-generic-password -a #{ENV['USER']} -s #{app_name} -w #{token}")
+            $logger.info "SCRIPT_LOGGER:: Key added to keychain"
+        else
+            $logger.error "unable to add key to keychain"
+        end
     end
 
     def remove_token(app_name)
-        $keyring.delete_password(app_name, ENV['USER'])
-        $logger.info "SCRIPT_LOGGER:: Key removed from keychain"
+        if system("security delete-generic-password -a #{ENV['USER']} -s #{app_name}")
+            $logger.info "SCRIPT_LOGGER:: Key removed from keychain"
+        end
     end
 
     def get_token(app_name)
-        return $keyring.get_password(app_name, ENV['USER'])
+        oauth = %x(security find-generic-password -a #{ENV['USER']} -s #{app_name} -w)
+        return oauth.chomp
     end
+
 
 end

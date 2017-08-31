@@ -1,6 +1,5 @@
 class GitHubUtils
 
-
     $repo_id = "stotherd/test-repo"
     def initialize(logger, git_utils)
         $logger = logger
@@ -78,7 +77,7 @@ class GitHubUtils
         req = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
         req['Authorization'] = "token #{oauth_token}"
         req.body = "[\n\"#{label}\"\n]"
-        res = Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') {|http| http.request(req)}
+        Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') {|http| http.request(req)}
     end
 
     def check_credentials_are_valid(oauth_token)

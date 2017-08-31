@@ -69,14 +69,14 @@ class GitUtils
     end
 
     def safe_merge(base_branch, to_be_merged_in_branch)
-        if true != system("git merge origin/#{to_be_merged_in_branch}")
+        if true != system("git merge origin/#{to_be_merged_in_branch} --no-edit")
             resolved = false
             $logger.info "SCRIPT_LOGGER:: unable to merge - CTRL-C to exit or press
             enter to continue after all conflicts resolved"
 
             while !resolved do
                 gets
-                resolved = system("git merge origin/#{to_be_merged_in_branch}")
+                resolved = system("git merge origin/#{to_be_merged_in_branch} --no-edit")
                 if resolved == false
                     $logger.error "SCRIPT_LOGGER:: There are still unresolved conflicts, or the repo isn't clean and the merge would break a change, or another issue with git preventing continuing."
                 end

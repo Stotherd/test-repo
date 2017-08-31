@@ -20,19 +20,19 @@ Either:
 
 This application needs an oauth token to run. Add the oauth token to the key chain ->
 
-./forwardmerger.rb --setup --oauth_token [INSERT_OAUTH_KEY_HERE]
+./git_tool.rb --setup --oauth_token [INSERT_OAUTH_KEY_HERE]
 
 And then execute your merge, following prompts ->
-./forwardmerger.rb -l [branch_you_are_on] -m [branch_to_be_merged_in]
+./git_tool.rb -l [branch_you_are_on] -m [branch_to_be_merged_in]
 
 For a promptless execution ->
-./forwardmerger.rb -l [branch_you_are_on] -m [branch_to_be_merged_in] -p -g -i
+./git_tool.rb -l [branch_you_are_on] -m [branch_to_be_merged_in] -p -g -i
 (-p push to master, -g generate pull request, -i promptless)
 
 OR
 
 Put your oauth in the command itself ->
-./forwardmerger.rb -l [branch_you_are_on] -m [branch_to_be_merged_in] --oauth_token [INSERT_OAUTH_KEY_HERE]
+./git_tool.rb -l [branch_you_are_on] -m [branch_to_be_merged_in] --oauth_token [INSERT_OAUTH_KEY_HERE]
 
 Conflicts
 
@@ -48,7 +48,7 @@ github will close the Pull Request if one was created.
 Some fatal logging may not be fatal. The clean function is a
 brute force method that you might want to check has fully cleaned up resources after.
 
-./forwardmerger.rb -l [branch_you_are_on] -m [branch_to_be_merged_in] -c -r
+./git_tool.rb -l [branch_you_are_on] -m [branch_to_be_merged_in] -c -r
 
 How this script normally works:
 
@@ -142,9 +142,11 @@ if options.clean == true
         exit
 end
 
-
+puts "check"
 if github_utilities.check_if_pull_request_exists(options.current_branch, options.to_be_merged_in, token)
+    puts "check"
     if (options.prompt != false)
+        puts "check"
         if !git_utilities.get_user_input_to_continue("SCRIPT_LOGGER:: Possible matching pull request detected.
 If the branch name generated matches that of a pull request, and the changes are pushed to origin, that pull request will be updated.
 Check above logs.
@@ -205,14 +207,6 @@ if local_present || remote_present
         if(options.push == true)
             git_utilities.push_to_origin(forward_branch)
         end
-    end
-    if (git_utilities.is_branch_up_to_date(forward_branch, to_be_merged_in_branch) == 0)
-        if(options.pull_request == true)
-            logger.info "SCRIPT_LOGGER:: Creating pull request"
-            github_utilities.fm_pull_request(forward_branch, current_branch, token)
-        end
-        logger.info "SCRIPT_LOGGER:: Exiting..."
-        exit
     end
 else
     logger.info "SCRIPT_LOGGER:: Forward merge branch will be called #{forward_branch}"
@@ -277,7 +271,7 @@ end
 
 if(options.prompt != false)
     if pushed
-        diff_of_branches = system("git diff #{current_branch} origin/#{forward_branch}")
+        system("git diff #{current_branch} origin/#{forward_branch}")
         if git_utilities.get_user_input_to_continue("SCRIPT_LOGGER:: Based on the above diff, do you want to create a pull request? (y/n)")
             github_utilities.fm_pull_request(forward_branch, current_branch, token)
             exit
