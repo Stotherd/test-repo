@@ -1,7 +1,7 @@
 class GitHubUtils
 
 
-    $repo_id = "stotherd/yodaspeak"
+    $repo_id = "stotherd/test-repo"
     def initialize(logger, git_utils)
         $logger = logger
         $git_utils = git_utils
