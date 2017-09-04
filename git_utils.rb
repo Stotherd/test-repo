@@ -55,12 +55,7 @@ class GitUtils
 
         number_of_commits_scanned = tree_of_branch_you_are_on.scan(/commit/).count
         $logger.info "SCRIPT_LOGGER:: Scanned #{number_of_commits_scanned} commits in #{branch_you_are_on} and none match the head of #{branch_to_be_checked_against} - continuing"
-        diff_of_branches = system("git diff #{branch_you_are_on} origin/#{branch_to_be_checked_against}")
-        if !diff_of_branches
-            $logger.error "SCRIPT_LOGGER:: Unable to diff the 2 branches, exiting"
-            exit
-        end
-
+        system("git diff origin/#{branch_to_be_checked_against} #{branch_you_are_on}")
 
     end
 

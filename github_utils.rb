@@ -1,9 +1,9 @@
 class GitHubUtils
 
     $repo_id = "stotherd/test-repo"
-    def initialize(logger, git_utils)
+
+    def initialize(logger)
         $logger = logger
-        $git_utils = git_utils
     end
 
     def get_issue_id(body)
@@ -67,9 +67,7 @@ class GitHubUtils
             ./git_tool -l #{current_branch} -m #{merge_branch} -c -r"
             exit
         end
-        label = "forward merge"
-        number = get_issue_id(res.body)
-        add_label_to_issue(number, label, oauth_token)
+        add_label_to_issue(get_issue_id(res.body), "⇝ Forward – DON'T SQUASH", oauth_token)
     end
 
     def add_label_to_issue(issue_number, label, oauth_token)

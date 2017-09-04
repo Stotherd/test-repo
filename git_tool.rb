@@ -7,7 +7,7 @@ require 'etc'
 require 'logger'
 
 require_relative 'git_utils'
-require_relative 'keyring_utils'
+require_relative 'keychain_utils'
 require_relative 'github_utils'
 
 logger = Logger.new(STDOUT)
@@ -93,21 +93,20 @@ OptionParser.new do |opt|
 end.parse!
 
 
-keyring_utilities = KeyringUtils.new(logger)
+keychain_utilities = KeychainUtils.new(logger)
 if options.setup == true
     if !options.token
         logger.error "SCRIPT_LOGGER:: Need an oauth token to set! use -o TOKEN_STRING"
         exit
     end
-    keyring_utilities.set_token('merge_script', options.token)
+    keychain_utilities.set_token('merge_script', options.token)
     exit
 elsif options.delete_oauth == true
-    keyring_utilities.remove_token('merge_script')
+    keychain_utilities.remove_token('merge_script')
     exit
 end
 
-#=======---Verify the required oauth token for a pull request is present---===========
-token = keyring_utilities.get_token('merge_script')
+token = keychain_utilities.get_token('merge_script')
 if(token == false)
     if (defined?(options.token)).nil?
         logger.error "SCRIPT_LOGGER:: No token configured - unable to continue"
@@ -119,13 +118,12 @@ if(token == false)
 end
 
 git_utilities = GitUtils.new(logger)
-github_utilities = GitHubUtils.new(logger, git_utilities)
+github_utilities = GitHubUtils.new(logger)
 if(github_utilities.check_credentials_are_valid(token) == false)
     logger.error "Credentials incorrect, please verify your OAuth token is valid"
     exit
 end
 
-#=======---Verify the required parameters are present---===========
 if (defined?(options.current_branch)).nil? || (defined?(options.to_be_merged_in)).nil?
      logger.error "Incomplete parameters - please read the handy help text:"
      logger.error help_text
@@ -142,11 +140,8 @@ if options.clean == true
         exit
 end
 
-puts "check"
 if github_utilities.check_if_pull_request_exists(options.current_branch, options.to_be_merged_in, token)
-    puts "check"
     if (options.prompt != false)
-        puts "check"
         if !git_utilities.get_user_input_to_continue("SCRIPT_LOGGER:: Possible matching pull request detected.
 If the branch name generated matches that of a pull request, and the changes are pushed to origin, that pull request will be updated.
 Check above logs.
@@ -163,6 +158,7 @@ logger.info "SCRIPT_LOGGER:: Merging #{to_be_merged_in_branch} into #{current_br
 
 git_utilities.get_latest
 git_utilities.checkout_local_branch(current_branch)
+git_utilities.get_latest
 git_utilities.push_to_origin(current_branch)
 
 if(git_utilities.does_branch_exist_remotely(to_be_merged_in_branch) == false)
@@ -271,7 +267,7 @@ end
 
 if(options.prompt != false)
     if pushed
-        system("git diff #{current_branch} origin/#{forward_branch}")
+        system("git diff origin/#{forward_branch} #{current_branch}")
         if git_utilities.get_user_input_to_continue("SCRIPT_LOGGER:: Based on the above diff, do you want to create a pull request? (y/n)")
             github_utilities.fm_pull_request(forward_branch, current_branch, token)
             exit
