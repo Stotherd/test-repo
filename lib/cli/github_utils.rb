@@ -1,4 +1,7 @@
 # Utilites for using the github api
+require 'net/http'
+require 'json'
+require 'ostruct'
 class GitHubUtils
   def initialize(log, repo_id)
     @logger = log

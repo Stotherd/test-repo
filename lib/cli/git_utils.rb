@@ -42,6 +42,10 @@ class GitUtils
     git.checkout(branch_name)
   end
 
+  def forward_branch_name(base_branch, merge_branch)
+    "forward-merge-#{merge_branch}-to-#{base_branch}"
+  end
+
   def branch_up_to_date?(branch_you_are_on, branch_to_be_checked_against)
     sha_of_to_be_merged = `git rev-parse origin/#{branch_to_be_checked_against}`
     tree_of_branch_you_are_on = `git log --pretty=short #{branch_you_are_on}`
@@ -56,7 +60,7 @@ class GitUtils
     @logger.info "SCRIPT_LOGGER:: Scanned #{number_of_commits_scanned} commits
     in #{branch_you_are_on} and none match the head of
     #{branch_to_be_checked_against} - continuing"
-    return false
+    false
   end
 
   def push_to_origin(branch_name)

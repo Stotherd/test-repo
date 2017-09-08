@@ -6,8 +6,7 @@ class TokenUtils
 
   def save(app_name, token)
     remove(app_name)
-    if system("security add-generic-password -a #{ENV['USER']}
-        -s #{app_name} -w #{token}")
+    if system("security add-generic-password -a #{ENV['USER']} -s #{app_name} -w #{token}")
       @logger.info 'SCRIPT_LOGGER:: Key added to keychain'
     else
       @logger.error 'SCRIPT_LOGGER:: unable to add key to keychain'
@@ -15,8 +14,7 @@ class TokenUtils
   end
 
   def remove(app_name)
-    if system("security delete-generic-password -a #{ENV['USER']}
-        -s #{app_name}")
+    if system("security delete-generic-password -a #{ENV['USER']} -s #{app_name}")
       @logger.info 'SCRIPT_LOGGER:: Key removed from keychain'
     end
   end
