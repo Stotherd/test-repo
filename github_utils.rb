@@ -61,9 +61,9 @@ class GitHubUtils
     end
 
     if res.body.include? 'state":"open'
-      issue_url = get_issue_url(res.body)
+      issue = issue_url(res.body)
       @logger.info "SCRIPT_LOGGER:: Created pull request:
-      #{title}: #{issue_url}"
+      #{title}: #{issue}"
     else
       @logger.error 'SCRIPT_LOGGER:: Could not create the pull request -
       response to network request was: '
@@ -81,14 +81,13 @@ class GitHubUtils
       ./git_tool -l #{current_branch} -m #{merge_branch} -c -r"
       exit
     end
-    add_label_to_issue(get_issue_id(res.body),
+    add_label_to_issue(issue_id(res.body),
                        "⇝ Forward – DON'T SQUASH",
                        oauth_token)
   end
 
   def add_label_to_issue(issue_number, label, oauth_token)
-    uri = URI("https://api.github.com/repos/#{@repo_id}/issues/#{issue_number}/
-    labels")
+    uri = URI("https://api.github.com/repos/#{@repo_id}/issues/#{issue_number}/labels")
     req = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
     req['Authorization'] = "token #{oauth_token}"
     req.body = "[\n\"#{label}\"\n]"

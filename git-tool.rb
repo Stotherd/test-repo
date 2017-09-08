@@ -25,16 +25,16 @@ chain ->
 ./git_tool.rb --setup --oauth_token [INSERT_OAUTH_KEY_HERE]
 
 And then execute your merge, following prompts ->
-./git_tool.rb -l [branch_you_are_on] -m [branch_to_be_merged_in]
+./git_tool.rb -l [branch_you_are_on] -m [branch_to_be_merged_in] -k [user/reponame]
 
 For a promptless execution ->
-./git_tool.rb -l [branch_you_are_on] -m [branch_to_be_merged_in] -p -g -i
+./git_tool.rb -l [branch_you_are_on] -m [branch_to_be_merged_in] -k [user/reponame] -p -g -i
 (-p push to master, -g generate pull request, -i promptless)
 
 OR
 
 Put your oauth in the command itself ->
-./git_tool.rb -l [branch_you_are_on] -m [branch_to_be_merged_in] --oauth_token [INSERT_OAUTH_KEY_HERE]
+./git_tool.rb -l [branch_you_are_on] -m [branch_to_be_merged_in] -k [user/reponame] --oauth_token [INSERT_OAUTH_KEY_HERE]
 
 Conflicts
 
@@ -51,7 +51,7 @@ Some fatal logging may not be fatal. The clean function is a
 brute force method that you might want to check has fully cleaned up resources
 after.
 
-./git_tool.rb -l [branch_you_are_on] -m [branch_to_be_merged_in] -c -r
+./git_tool.rb -l [branch_you_are_on] -m [branch_to_be_merged_in] -k [user/reponame] -c -r
 
 How this script normally works:
 
@@ -73,6 +73,8 @@ otherwise
 push to origin (prompt or -p)
 create pull request (prompt or -g)
 "
+
+options_text = "--repository --oauth --setup --delete_oauth"
 options = OpenStruct.new
 
 OptionParser.new do |opt|
@@ -127,7 +129,7 @@ if github_utilities.valid_credentials?(token) == false
 end
 logger.info 'Credentials authenticated'
 
-if defined?(options.current_branch).nil? || defined?(options.to_be_merged_in).nil?
+if defined?(options.current_branch).nil? || defined?(options.to_be_merged_in).nil? || defined?(options.repo_id).nil?
   logger.error 'Incomplete parameters - please read the handy help text:'
   logger.error help_text
   exit
@@ -181,7 +183,7 @@ if local_present || remote_present
   if local_present
     git_utilities.checkout_local_branch(forward_branch)
     if remote_present
-      git_utilities.get_latest
+      git_utilities.obtain_latest
     else
       git_utilities.push_to_origin(forward_branch) if options.push == true
     end
@@ -191,6 +193,7 @@ if local_present || remote_present
   end
   if git_utilities.branch_up_to_date?(forward_branch, current_branch) != true
     if options.prompt != false
+      system("git diff origin/#{current_branch} #{forward_branch}")
       unless git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: The above diff contains the differences between the 2 branches. Do you wish to continue with the merge? (y/n)')
         exit
       end
@@ -207,6 +210,7 @@ else
   end
 
   if options.prompt != false
+    system("git diff #{current_branch} #{to_be_merged_in_branch}")
     unless git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: The above diff contains the differences between the 2 branches. Do you wish to continue? (y/n)')
       exit
     end
@@ -260,12 +264,10 @@ if options.force_merge == true
 end
 
 if options.prompt != false
-  if pushed
-    system("git diff origin/#{forward_branch} #{current_branch}")
-    if git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: Based on the above diff, do you want to create a pull request? (y/n)')
+  system("git diff origin/#{forward_branch} #{current_branch}")
+  if git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: Based on the above diff, do you want to create a pull request? (y/n)')
       github_utilities.forward_merge_pull_request(forward_branch, current_branch, token)
       exit
-    end
   end
   if git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: Do you want to finish the merge without a pull request? (y/n)')
     git_utilities.final_clean_merge(current_branch, forward_branch)

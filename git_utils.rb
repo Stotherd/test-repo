@@ -56,8 +56,6 @@ class GitUtils
     @logger.info "SCRIPT_LOGGER:: Scanned #{number_of_commits_scanned} commits
     in #{branch_you_are_on} and none match the head of
     #{branch_to_be_checked_against} - continuing"
-    system("git diff origin/#{branch_to_be_checked_against}
-    #{branch_you_are_on}")
     return false
   end
 
