@@ -12,7 +12,7 @@ if [ -f ~/.gittool-completion.bash ]; then
   . ~/.gittool-completion.bash
 fi
 
-Then, run the setup command with an oauth token to add it to your keychain, using the command:
+Then, run the setup command with an oauth token from github to add it to your keychain, using the command:
 
 ./gitkeep setup -o [OAUTH_TOKEN]
 
@@ -20,7 +20,7 @@ And then you're ready to use the script.
 
 To perform an interactive forward merge:
 
-./gitkeep forward_merge --base_branch [BASE_BRANCH_NAME] --merge_branch [BRANCH_TO_BE_MERGED_IN] --repo_name [REPO_NAME]
+./gitkeep forward_merge --base_branch [BASE_BRANCH_NAME] --merge_branch [BRANCH_TO_BE_MERGED_IN]
 
 repo_name should be in the format found in the github url, such as "shopkeep/ipad-register"
 
@@ -31,4 +31,4 @@ The command can also be given with -a, and a series of parameters to automatical
 
 you can then revert back to the base_branch using:
 
-./gitkeep clean --base_branch [BASE_BRANCH_NAME] --merge_branch [BRANCH_TO_BE_MERGED_IN] --repo_name [REPO_NAME]
+./gitkeep clean --base_branch [BASE_BRANCH_NAME] --merge_branch [BRANCH_TO_BE_MERGED_IN]

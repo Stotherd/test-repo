@@ -90,9 +90,9 @@ class GitUtils
         or the repo isn't clean and the merge would break a change, or another
         issue with git preventing continuing."
       end
-    else
-      @logger.info "SCRIPT_LOGGER:: Merged into #{base_branch}"
     end
+    @logger.info "SCRIPT_LOGGER:: Merged into #{base_branch}"
+
   end
 
   def merge_complete?(to_be_merged_in_branch)
@@ -118,5 +118,10 @@ class GitUtils
     safe_merge(base_branch, head_branch)
     push_to_origin(base_branch)
     forward_merge_clean(base_branch, head_branch, true)
+  end
+
+  def origin_repo_name
+    str = git.config('remote.origin.url')
+    str.to_s.rpartition(':').last.rpartition('.').first
   end
 end

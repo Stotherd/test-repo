@@ -21,10 +21,10 @@ module Gitkeep
     bin/gitkeep setup --oauth_token [INSERT_OAUTH_KEY_HERE]
 
     And then execute your merge, following prompts ->
-    bin/gitkeep forward_merge -b [branch_you_are_on] -m [branch_to_be_merged_in] -k [user/reponame]
+    bin/gitkeep forward_merge -b [branch_you_are_on] -m [branch_to_be_merged_in]
 
     For a promptless execution ->
-    bin/gitkeep forward_merge -b [branch_you_are_on] -m [branch_to_be_merged_in] -k [user/reponame] -p -g -a
+    bin/gitkeep forward_merge -b [branch_you_are_on] -m [branch_to_be_merged_in] -p -g -a
     (-p push to master, -g generate pull request, -a automatic)
 
     Conflicts
@@ -42,7 +42,7 @@ module Gitkeep
     brute force method that you might want to check has fully cleaned up resources
     after.
 
-    bin/gitkeep clean -b [branch_you_are_on] -m [branch_to_be_merged_in] -k [user/reponame]
+    bin/gitkeep clean -b [branch_you_are_on] -m [branch_to_be_merged_in]
 
     How this script normally works:
 
@@ -71,9 +71,6 @@ module Gitkeep
       c.flag %i[b base_branch], type: String
       c.desc 'Pass a merge branch'
       c.flag %i[m merge_branch], type: String
-      c.desc 'Pass a repo name e.g. Shopkeep/ipad-register'
-      c.flag %i[r repo_name], type: String
-
       c.desc 'Push the generated branch to master'
       c.switch %i[p push]
       c.desc 'Generate a pull request'
@@ -105,12 +102,11 @@ module Gitkeep
         elsif options[:output_remote]
           puts git_utilities.list_remote_branches
         else
-
           logger = Logger.new(STDOUT)
           token_utilities = TokenUtils.new(logger)
           token = token_utilities.find('merge_script')
           git_utilities = GitUtils.new(logger, Dir.getwd)
-          github_utilities = GitHubUtils.new(logger, options[:repo_name])
+          github_utilities = GitHubUtils.new(logger, git_utilities.origin_repo_name)
           if github_utilities.valid_credentials?(token) == false
             logger.error 'Credentials incorrect, please verify your OAuth token is valid'
             exit

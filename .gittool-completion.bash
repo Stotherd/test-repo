@@ -25,8 +25,16 @@ _gitkeep()
             return 0
             ;;
         clean)
-            local running=$(for x in `./gitkeep clean -c`; do echo ${x} ; done)
-            COMPREPLY=( $(compgen -W "${running}" -- ${cur}) )
+            if [ "${COMP_WORDS[COMP_CWORD-1]}" == "--base_branch" ] ; then
+              local running=$(for x in `./gitkeep clean --output_local`; do echo ${x} ; done)
+              COMPREPLY=( $(compgen -W "${running}" -- ${cur}) )
+            elif [ "${COMP_WORDS[COMP_CWORD-1]}" == "--merge_branch" ] ; then
+              local running=$(for x in `./gitkeep clean --output_remote`; do echo ${x} ; done)
+              COMPREPLY=( $(compgen -W "${running}" -- ${cur}) )
+            else
+              local running=$(for x in `./gitkeep clean -c`; do echo ${x} ; done)
+              COMPREPLY=( $(compgen -W "${running}" -- ${cur}) )
+            fi            
             return 0
             ;;
         setup)

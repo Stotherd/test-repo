@@ -47,7 +47,6 @@ esac
 # variable.
 __git_find_repo_path ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	if [ -n "$__git_repo_path" ]; then
 		# we already know where it is
 		return
@@ -75,7 +74,6 @@ __git_find_repo_path ()
 # returns location of .git repo
 __gitdir ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	if [ -z "${1-}" ]; then
 		__git_find_repo_path || return 1
 		echo "$__git_repo_path"
@@ -90,7 +88,6 @@ __gitdir ()
 # '--git-dir=<path>' and '-C <path>' options present on the command line
 __git ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	git ${__git_C_args:+"${__git_C_args[@]}"} \
 		${__git_dir:+--git-dir="$__git_dir"} "$@" 2>/dev/null
 }
@@ -150,7 +147,6 @@ __git ()
 
 __git_reassemble_comp_words_by_ref()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local exclude i j first
 	# Which word separators to exclude?
 	exclude="${1//[^$COMP_WORDBREAKS]}"
@@ -198,7 +194,6 @@ __git_reassemble_comp_words_by_ref()
 if ! type _get_comp_words_by_ref >/dev/null 2>&1; then
 _get_comp_words_by_ref ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local exclude cur_ words_ cword_
 	if [ "$1" = "-n" ]; then
 		exclude=$2
@@ -235,7 +230,6 @@ fi
 #    prefix and suffix.
 __gitcomp_direct ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local IFS=$'\n'
 
 	COMPREPLY=($1)
@@ -243,7 +237,6 @@ __gitcomp_direct ()
 
 __gitcompappend ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local x i=${#COMPREPLY[@]}
 	for x in $1; do
 		if [[ "$x" == "$3"* ]]; then
@@ -254,7 +247,6 @@ __gitcompappend ()
 
 __gitcompadd ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	COMPREPLY=()
 	__gitcompappend "$@"
 }
@@ -268,7 +260,6 @@ __gitcompadd ()
 # 4: A suffix to be appended to each possible completion word (optional).
 __gitcomp ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local cur_="${3-$cur}"
 
 	case "$cur_" in
@@ -294,7 +285,6 @@ __gitcomp ()
 # completion candidates, COMPREPLY.
 __gitcomp_nl_append ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local IFS=$'\n'
 	__gitcompappend "$1" "${2-}" "${3-$cur}" "${4- }"
 }
@@ -310,7 +300,6 @@ __gitcomp_nl_append ()
 #    appended.
 __gitcomp_nl ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	COMPREPLY=()
 	__gitcomp_nl_append "$@"
 }
@@ -324,7 +313,6 @@ __gitcomp_nl ()
 # 3: Generate possible completion matches for this word (optional).
 __gitcomp_file ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local IFS=$'\n'
 
 	# XXX does not work when the directory prefix contains a tilde,
@@ -344,7 +332,6 @@ __gitcomp_file ()
 # argument, and using the options specified in the second argument.
 __git_ls_files_helper ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	if [ "$2" == "--committable" ]; then
 		__git -C "$1" diff-index --name-only --relative HEAD
 	else
@@ -362,7 +349,6 @@ __git_ls_files_helper ()
 #    slash.
 __git_index_files ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local root="${2-.}" file
 
 	__git_ls_files_helper "$root" "$1" |
@@ -381,7 +367,6 @@ __git_index_files ()
 # 3: A suffix to be appended to each listed branch (optional).
 __git_heads ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local pfx="${1-}" cur_="${2-}" sfx="${3-}"
 
 	__git for-each-ref --format="${pfx//\%/%%}%(refname:strip=2)$sfx" \
@@ -392,7 +377,6 @@ __git_heads ()
 # Accepts the same positional parameters as __git_heads() above.
 __git_tags ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local pfx="${1-}" cur_="${2-}" sfx="${3-}"
 
 	__git for-each-ref --format="${pfx//\%/%%}%(refname:strip=2)$sfx" \
@@ -414,7 +398,6 @@ __git_tags ()
 # Use __git_complete_refs() instead.
 __git_refs ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local i hash dir track="${2-}"
 	local list_refs_from=path remote="${1-}"
 	local format refs
@@ -536,7 +519,6 @@ __git_refs ()
 #                 space.
 __git_complete_refs ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local remote track pfx cur_="$cur" sfx=" "
 
 	while test $# != 0; do
@@ -558,7 +540,6 @@ __git_complete_refs ()
 # Deprecated: use __git_complete_fetch_refspecs() instead.
 __git_refs2 ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local i
 	for i in $(__git_refs "$1"); do
 		echo "$i:$i"
@@ -574,7 +555,6 @@ __git_refs2 ()
 #    space (optional).
 __git_complete_fetch_refspecs ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local i remote="$1" pfx="${2-}" cur_="${3-$cur}" sfx="${4- }"
 
 	__gitcomp_direct "$(
@@ -587,7 +567,6 @@ __git_complete_fetch_refspecs ()
 # __git_refs_remotes requires 1 argument (to pass to ls-remote)
 __git_refs_remotes ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local i hash
 	__git ls-remote "$1" 'refs/heads/*' | \
 	while read -r hash i; do
@@ -597,7 +576,6 @@ __git_refs_remotes ()
 
 __git_remotes ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	__git_find_repo_path
 	test -d "$__git_repo_path/remotes" && ls -1 "$__git_repo_path/remotes"
 	__git remote
@@ -606,7 +584,6 @@ __git_remotes ()
 # Returns true if $1 matches the name of a configured remote, false otherwise.
 __git_is_configured_remote ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local remote
 	for remote in $(__git_remotes); do
 		if [ "$remote" = "$1" ]; then
@@ -618,7 +595,6 @@ __git_is_configured_remote ()
 
 __git_list_merge_strategies ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	git merge -s help 2>&1 |
 	sed -n -e '/[Aa]vailable strategies are: /,/^$/{
 		s/\.$//
@@ -637,14 +613,12 @@ __git_merge_strategies=
 # is needed.
 __git_compute_merge_strategies ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	test -n "$__git_merge_strategies" ||
 	__git_merge_strategies=$(__git_list_merge_strategies)
 }
 
 __git_complete_revlist_file ()
 {
-echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local pfx ls ref cur_="$cur"
 	case "$cur_" in
 	*..?*:*)
@@ -709,7 +683,6 @@ echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 # The exception is --committable, which finds the files appropriate commit.
 __git_complete_index_file ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local pfx="" cur_="$cur"
 
 	case "$cur_" in
@@ -725,19 +698,16 @@ __git_complete_index_file ()
 
 __git_complete_file ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	__git_complete_revlist_file
 }
 
 __git_complete_revlist ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	__git_complete_revlist_file
 }
 
 __git_complete_remote_or_refspec ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local cur_="$cur" cmd="${words[1]}"
 	local i c=2 remote="" pfx="" lhs=1 no_complete_refspec=0
 	if [ "$cmd" = "remote" ]; then
@@ -811,7 +781,6 @@ __git_complete_remote_or_refspec ()
 
 __git_complete_strategy ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	__git_compute_merge_strategies
 	case "$prev" in
 	-s|--strategy)
@@ -828,7 +797,6 @@ __git_complete_strategy ()
 }
 
 __git_commands () {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	if test -n "${GIT_TESTING_COMMAND_COMPLETION:-}"
 	then
 		printf "%s" "${GIT_TESTING_COMMAND_COMPLETION}"
@@ -839,7 +807,6 @@ __git_commands () {
 
 __git_list_all_commands ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local i IFS=" "$'\n'
 	for i in $(__git_commands)
 	do
@@ -853,14 +820,12 @@ __git_list_all_commands ()
 __git_all_commands=
 __git_compute_all_commands ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	test -n "$__git_all_commands" ||
 	__git_all_commands=$(__git_list_all_commands)
 }
 
 __git_list_porcelain_commands ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local i IFS=" "$'\n'
 	__git_compute_all_commands
 	for i in $__git_all_commands
@@ -949,7 +914,6 @@ __git_list_porcelain_commands ()
 __git_porcelain_commands=
 __git_compute_porcelain_commands ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	test -n "$__git_porcelain_commands" ||
 	__git_porcelain_commands=$(__git_list_porcelain_commands)
 }
@@ -958,7 +922,6 @@ __git_compute_porcelain_commands ()
 # with the prefix removed.
 __git_get_config_variables ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local section="$1" i IFS=$'\n'
 	for i in $(__git config --name-only --get-regexp "^$section\..*"); do
 		echo "${i#$section.}"
@@ -967,20 +930,17 @@ __git_get_config_variables ()
 
 __git_pretty_aliases ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	__git_get_config_variables "pretty"
 }
 
 __git_aliases ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	__git_get_config_variables "alias"
 }
 
 # __git_aliased_command requires 1 argument
 __git_aliased_command ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local word cmdline=$(__git config --get "alias.$1")
 	for word in $cmdline; do
 		case "$word" in
@@ -1006,7 +966,6 @@ __git_aliased_command ()
 # __git_find_on_cmdline requires 1 argument
 __git_find_on_cmdline ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local word subcommand c=1
 	while [ $c -lt $cword ]; do
 		word="${words[c]}"
@@ -1036,7 +995,6 @@ __git_find_on_cmdline ()
 # __git_get_option_value requires 3 arguments
 __git_get_option_value ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local c short_opt long_opt val
 	local result= values config_key word
 
@@ -1062,12 +1020,6 @@ __git_get_option_value ()
 		result="$(__git config "$config_key")"
 	fi
 
-	echo "$result"
-}
-
-__git_has_doubledash ()
-{
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local c=1
 	while [ $c -lt $cword ]; do
 		if [ "--" = "${words[c]}" ]; then
@@ -1089,7 +1041,6 @@ __git_has_doubledash ()
 # __git_count_arguments requires 1 argument: the git command executed.
 __git_count_arguments ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local word i c=0
 
 	# Skip "git" (first argument)
@@ -1120,7 +1071,6 @@ __git_whitespacelist="nowarn warn error error-all fix"
 
 _git_am ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	__git_find_repo_path
 	if [ -d "$__git_repo_path"/rebase-apply ]; then
 		__gitcomp "--skip --continue --resolved --abort"
@@ -1144,7 +1094,6 @@ _git_am ()
 
 _git_apply ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	case "$cur" in
 	--whitespace=*)
 		__gitcomp "$__git_whitespacelist" "" "${cur##--whitespace=}"
@@ -1165,7 +1114,6 @@ _git_apply ()
 
 _git_add ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	case "$cur" in
 	--*)
 		__gitcomp "
@@ -1185,7 +1133,6 @@ _git_add ()
 
 _git_archive ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	case "$cur" in
 	--format=*)
 		__gitcomp "$(git archive --list)" "" "${cur##--format=}"
@@ -1208,7 +1155,6 @@ _git_archive ()
 
 _git_bisect ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	__git_has_doubledash && return
 
 	local subcommands="start bad good skip reset visualize replay log run"
@@ -1234,7 +1180,6 @@ _git_bisect ()
 
 _git_branch ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local i c=1 only_local_ref="n" has_r="n"
 
 	while [ $c -lt $cword ]; do
@@ -1271,7 +1216,6 @@ _git_branch ()
 
 _git_bundle ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	local cmd="${words[2]}"
 	case "$cword" in
 	2)
@@ -1292,7 +1236,6 @@ _git_bundle ()
 
 _git_checkout ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	__git_has_doubledash && return
 
 	case "$cur" in
@@ -1320,13 +1263,11 @@ _git_checkout ()
 
 _git_cherry ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	__git_complete_refs
 }
 
 _git_cherry_pick ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	__git_find_repo_path
 	if [ -f "$__git_repo_path"/CHERRY_PICK_HEAD ]; then
 		__gitcomp "--continue --quit --abort"
@@ -1344,7 +1285,6 @@ _git_cherry_pick ()
 
 _git_clean ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	case "$cur" in
 	--*)
 		__gitcomp "--dry-run --quiet"
@@ -1358,7 +1298,6 @@ _git_clean ()
 
 _git_clone ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	case "$cur" in
 	--*)
 		__gitcomp "
@@ -1390,7 +1329,6 @@ __git_untracked_file_modes="all no normal"
 
 _git_commit ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	case "$prev" in
 	-c|-C)
 		__git_complete_refs
@@ -1437,7 +1375,6 @@ _git_commit ()
 
 _git_describe ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	case "$cur" in
 	--*)
 		__gitcomp "
@@ -1474,7 +1411,6 @@ __git_diff_common_options="--stat --numstat --shortstat --summary
 
 _git_diff ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	__git_has_doubledash && return
 
 	case "$cur" in
@@ -1503,7 +1439,6 @@ __git_mergetools_common="diffuse diffmerge ecmerge emerge kdiff3 meld opendiff
 
 _git_difftool ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	__git_has_doubledash && return
 
 	case "$cur" in
