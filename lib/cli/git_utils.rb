@@ -25,6 +25,19 @@ class GitUtils
     #{branch_to_be_deleted} branch deleted."
   end
 
+  def list_remote_branches
+    str_array = git.branches.remote
+    result = []
+    str_array.each do |str_|
+      result.push(str_.to_s.rpartition('/').last)
+    end
+    result
+  end
+
+  def list_local_branches
+    git.branches.local
+  end
+
   def remote_branch?(branch_name)
     git.is_remote_branch?(branch_name)
   end
