@@ -126,7 +126,7 @@ module Gitkeep
           end
 
           if github_utilities.does_pull_request_exist?(current_branch, merge_branch, token)
-            if options[:automatic]
+            unless options[:automatic]
               unless git_utilities.get_user_input_to_continue("SCRIPT_LOGGER:: Possible matching pull request detected.
           If the branch name generated matches that of a pull request, and the changes are pushed to origin, that pull request will be updated.
           Check above logs.
@@ -177,7 +177,7 @@ module Gitkeep
               exit
             end
             if git_utilities.branch_up_to_date?(forward_branch, options[:base_branch]) != true
-              if options[:automatic]
+              unless options[:automatic]
                 system("git diff origin/#{options[:base_branch]} #{forward_branch}")
                 unless git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: The above diff contains the differences between the 2 branches. Do you wish to continue with the merge? (y/n)')
                   exit
@@ -194,7 +194,7 @@ module Gitkeep
               exit
             end
 
-            if options[:automatic]
+            unless options[:automatic]
               system("git diff #{options[:base_branch]} #{options[:merge_branch]}")
               unless git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: The above diff contains the differences between the 2 branches. Do you wish to continue? (y/n)')
                 exit
@@ -224,7 +224,7 @@ module Gitkeep
             logger.info "SCRIPT_LOGGER:: Pushing #{forward_branch} to origin"
             git_utilities.push_to_origin(forward_branch)
             pushed = true
-          elsif options[:automatic]
+          elsif !options[:automatic]
             if git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: Do you want to push to master? (Required for pull request)(y/n)')
               logger.info "SCRIPT_LOGGER:: Pushing #{forward_branch} to origin"
               git_utilities.push_to_origin(forward_branch)
@@ -248,7 +248,7 @@ module Gitkeep
             git_utilities.final_clean_merge(current_branch, forward_branch)
           end
 
-          if options[:automatic]
+          unless options[:automatic]
             system("git diff origin/#{forward_branch} #{options[:base_branch]}")
             if git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: Based on the above diff, do you want to create a pull request? (y/n)')
               github_utilities.forward_merge_pull_request(forward_branch, options[:base_branch], token)
@@ -279,12 +279,14 @@ module Gitkeep
       c.switch %i[output_remote]
       c.action do |_global_options, options, _args|
         logger = Logger.new(STDOUT)
-
         git_utilities = GitUtils.new(logger, Dir.getwd)
         if options[:complete]
           options.each_key do |key|
-            next unless key.length > 2
-            puts key
+            if key.length > 2
+              puts '--' << key.to_s
+            else
+              puts '-' << key.to_s
+            end
           end
         elsif options[:output_local]
           puts git_utilities.list_local_branches

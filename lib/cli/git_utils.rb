@@ -103,9 +103,9 @@ class GitUtils
     complete = false
     until complete
       @logger.info warning
-      decision = gets.chomp
-      return false if (decision.casecmp 'n').zero?
-      return true if (decision.casecmp 'y').zero?
+      decision = $stdin.gets
+      return false if (decision.chomp.casecmp 'n').zero?
+      return true if (decision.chomp.casecmp 'y').zero?
     end
   end
 
