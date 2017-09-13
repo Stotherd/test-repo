@@ -18,51 +18,46 @@ class GitHubUtils
     hashed_json['url']
   end
 
-  def does_pull_request_exist?(branch_a, branch_b, oauth_token)
-    uri = URI("https://api.github.com/repos/#{@repo_id}/pulls")
-    req = Net::HTTP::Get.new(uri)
+  def build_http_request(uri_tail, type, body, oauth_token)
+    uri = URI("https://api.github.com/repos/#{@repo_id}#{uri_tail}")
+    if type == 'POST'
+      req = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
+      req.body = body
+    elsif type == 'GET'
+      req = Net::HTTP::Get.new(uri)
+    end
     req['Authorization'] = "token #{oauth_token}"
-    res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+    Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
       http.request(req)
     end
+  end
+
+  def does_pull_request_exist?(branch_a, branch_b, oauth_token)
+    res = build_http_request('/pulls', 'GET', nil, oauth_token)
     hashed_json = JSON.parse(res.body)
     branch_exists = false
     hashed_json.each do |i|
-      if (i['head']['ref'].include? branch_a) &&
-         (i['head']['ref'].include? branch_b)
-        @logger.info "SCRIPT_LOGGER:: #{i['url']}, #{i['head']['ref']} into
-        #{i['base']['ref']}"
-        @logger.info 'SCRIPT_LOGGER:: This ^^^ pull request branch name includes
-         both branches we want to merge.'
+      if ((i['head']['ref']).include? branch_a) && ((i['head']['ref']).include? branch_b)
+        @logger.info "SCRIPT_LOGGER:: #{i['url']}, #{i['head']['ref']} into #{i['base']['ref']}"
+        @logger.info 'SCRIPT_LOGGER:: This ^^^ pull request branch name includes both branches we want to merge.'
         branch_exists = true
-
       end
-      next unless i['base']['ref'].include? branch_a
-      @logger.info "SCRIPT_LOGGER:: #{i['url']}, #{i['head']['ref']}
-      into #{i['base']['ref']}"
-      @logger.info 'SCRIPT_LOGGER:: This ^^^ pull request base branch is the
-      same as the branch we want to merge into.'
+      next unless (i['base']['ref']).include? branch_a
+      @logger.info "SCRIPT_LOGGER:: #{i['url']}, #{i['head']['ref']} into #{i['base']['ref']}"
+      @logger.info 'SCRIPT_LOGGER:: This ^^^ pull request base branch is the same as the branch we want to merge into.'
       branch_exists = true
     end
     branch_exists
   end
 
   def forward_merge_pull_request(merge_branch, current_branch, oauth_token)
-    uri = URI("https://api.github.com/repos/#{@repo_id}/pulls")
-    req = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
-
-    req['Authorization'] = "token #{oauth_token}"
     title = "Automated pull request of #{merge_branch} into #{current_branch}"
-    body = "Automated pull request of #{merge_branch}, into the
-    #{current_branch} branch"
-    req.body = { title: title,
-                 body: body,
-                 head: merge_branch,
-                 base: current_branch }.to_json
-    res = Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
-      http.request(req)
-    end
-
+    body_text = "Automated pull request of #{merge_branch}, into the #{current_branch} branch"
+    body = { title: title,
+             body: body_text,
+             head: merge_branch,
+             base: current_branch }.to_json
+    res = build_http_request('/pulls', 'POST', body, oauth_token)
     if res.body.include? 'state":"open'
       issue = issue_url(res.body)
       @logger.info "SCRIPT_LOGGER:: Created pull request:
@@ -90,13 +85,7 @@ class GitHubUtils
   end
 
   def add_label_to_issue(issue_number, label, oauth_token)
-    uri = URI("https://api.github.com/repos/#{@repo_id}/issues/#{issue_number}/labels")
-    req = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
-    req['Authorization'] = "token #{oauth_token}"
-    req.body = "[\n\"#{label}\"\n]"
-    Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
-      http.request(req)
-    end
+    build_http_request("/issues/#{issue_number}/labels", 'POST', "[\n\"#{label}\"\n]", oauth_token)
   end
 
   def valid_credentials?(oauth_token)

@@ -2,13 +2,10 @@ require 'git'
 
 # Git utilities using the ruby gem ruby-git
 class GitUtils
-  def initialize(log, path)
+  def initialize(log)
     @logger = log
-    @path = path
-  end
-
-  def git
-    @git ||= Git.open(@path)
+    path = `git rev-parse --show-toplevel`
+    @git ||= Git.open(path.chomp)
   end
 
   def forward_merge_clean(branch_you_were_on,
@@ -26,7 +23,7 @@ class GitUtils
   end
 
   def list_remote_branches
-    str_array = git.branches.remote
+    str_array = @git.branches.remote
     result = []
     str_array.each do |str_|
       result.push(str_.to_s.rpartition('/').last)
@@ -35,24 +32,24 @@ class GitUtils
   end
 
   def list_local_branches
-    git.branches.local
+    @git.branches.local
   end
 
   def remote_branch?(branch_name)
-    git.is_remote_branch?(branch_name)
+    @git.is_remote_branch?(branch_name)
   end
 
   def local_branch?(branch_name)
-    git.is_local_branch?(branch_name)
+    @git.is_local_branch?(branch_name)
   end
 
   def obtain_latest
-    git.fetch
-    git.pull
+    @git.fetch
+    @git.pull
   end
 
   def checkout_local_branch(branch_name)
-    git.checkout(branch_name)
+    @git.checkout(branch_name)
   end
 
   def forward_branch_name(base_branch, merge_branch)
@@ -77,11 +74,11 @@ class GitUtils
   end
 
   def push_to_origin(branch_name)
-    git.push(git.remote, branch_name)
+    @git.push(@git.remote, branch_name)
   end
 
   def safe_merge(base_branch, to_be_merged_in_branch)
-    if !system("git merge origin/#{to_be_merged_in_branch} --no-edit")
+    unless system("git merge origin/#{to_be_merged_in_branch} --no-edit")
       @logger.info "SCRIPT_LOGGER:: unable to merge - CTRL-C to exit or press
       enter to continue after all conflicts resolved"
       until merge_complete?(to_be_merged_in_branch)
@@ -92,7 +89,6 @@ class GitUtils
       end
     end
     @logger.info "SCRIPT_LOGGER:: Merged into #{base_branch}"
-
   end
 
   def merge_complete?(to_be_merged_in_branch)
@@ -121,7 +117,7 @@ class GitUtils
   end
 
   def origin_repo_name
-    str = git.config('remote.origin.url')
+    str = @git.config('remote.origin.url')
     str.to_s.rpartition(':').last.rpartition('.').first
   end
 end

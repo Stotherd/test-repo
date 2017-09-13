@@ -3,6 +3,7 @@ require 'logger'
 require_relative 'git_utils'
 require_relative 'token_utils'
 require_relative 'github_utils'
+require_relative 'forward_merge'
 
 module Gitkeep
   module CLI
@@ -87,8 +88,7 @@ module Gitkeep
       c.switch %i[output_remote]
       c.action do |_global_options, options, _args|
         logger = Logger.new(STDOUT)
-
-        git_utilities = GitUtils.new(logger, Dir.getwd)
+        git_utilities = GitUtils.new(logger)
         if options[:complete]
           options.each_key do |key|
             if key.length > 2
@@ -102,159 +102,10 @@ module Gitkeep
         elsif options[:output_remote]
           puts git_utilities.list_remote_branches
         else
-          logger = Logger.new(STDOUT)
-          token_utilities = TokenUtils.new(logger)
-          token = token_utilities.find('merge_script')
-          git_utilities = GitUtils.new(logger, Dir.getwd)
-          github_utilities = GitHubUtils.new(logger, git_utilities.origin_repo_name)
-          if github_utilities.valid_credentials?(token) == false
-            logger.error 'Credentials incorrect, please verify your OAuth token is valid'
-            exit
-          end
-          logger.info 'Credentials authenticated'
-          current_branch = options[:base_branch]
-          merge_branch = options[:merge_branch]
-
-          if defined?(options[:merge_branch]).nil? || defined?(options[:base_branch]).nil? || defined?(options[:repo_name]).nil?
-            logger.error 'Incomplete parameters - please read the handy help text:'
-            logger.error help_text
-            exit
-          end
-
-          if github_utilities.does_pull_request_exist?(current_branch, merge_branch, token)
-            unless options[:automatic]
-              unless git_utilities.get_user_input_to_continue("SCRIPT_LOGGER:: Possible matching pull request detected.
-          If the branch name generated matches that of a pull request, and the changes are pushed to origin, that pull request will be updated.
-          Check above logs.
-          Do you wish to continue? (y/n)")
-                exit
-              end
-            else
-              logger.warn 'SCRIPT_LOGGER:: Possible pull request already in progress.'
-            end
-          end
-
-          logger.info "SCRIPT_LOGGER:: Merging #{options[:merge_branch]} into #{options[:base_branch]}"
-
-          git_utilities.obtain_latest
-          git_utilities.checkout_local_branch(options[:base_branch])
-          git_utilities.obtain_latest
-          git_utilities.push_to_origin(options[:base_branch])
-
-          if git_utilities.remote_branch?(options[:merge_branch]) == false
-            logger.warn "SCRIPT_LOGGER:: Remote branch #{options[:merge_branch]} does not exist - exiting."
-            exit
-          end
-
-          local_present = false
-          remote_present = false
-
-          forward_branch = git_utilities.forward_branch_name(options[:base_branch], options[:merge_branch])
-          puts forward_branch
-          if git_utilities.local_branch?(forward_branch) == true
-            logger.warn "SCRIPT_LOGGER:: Forward merge branch #{forward_branch} already locally exists."
-            local_present = true
-          end
-
-          if git_utilities.remote_branch?(forward_branch) == true
-            logger.warn "SCRIPT_LOGGER:: Forward merge branch #{forward_branch} already remotely exists."
-            remote_present = true
-          end
-          if local_present || remote_present
-            if local_present
-              git_utilities.checkout_local_branch(forward_branch)
-              if remote_present
-                git_utilities.obtain_latest
-              elsif options[:push] == true
-                git_utilities.push_to_origin(forward_branch)
-              end
-            elsif remote_present && system("git checkout -b #{forward_branch} origin/#{forward_branch} > /dev/null 2>&1") != true
-              logger.error "SCRIPT_LOGGER:: Failed to checkout #{forward_branch} from remote"
-              exit
-            end
-            if git_utilities.branch_up_to_date?(forward_branch, options[:base_branch]) != true
-              unless options[:automatic]
-                system("git diff origin/#{options[:base_branch]} #{forward_branch}")
-                unless git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: The above diff contains the differences between the 2 branches. Do you wish to continue with the merge? (y/n)')
-                  exit
-                end
-              end
-              logger.info "SCRIPT_LOGGER:: Updating #{forward_branch} with latest from #{current_branch}"
-              safe_merge(forward_branch, options[:base_branch])
-              git_utilities.push_to_origin(forward_branch) if options[:push] == true
-            end
-          else
-            logger.info "SCRIPT_LOGGER:: Forward merge branch will be called #{forward_branch}"
-            if git_utilities.branch_up_to_date?(options[:base_branch], options[:merge_branch]) == true
-              logger.info "SCRIPT_LOGGER:: We don't need to forward merge these 2 branches. Exiting..."
-              exit
-            end
-
-            unless options[:automatic]
-              system("git diff #{options[:base_branch]} #{options[:merge_branch]}")
-              unless git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: The above diff contains the differences between the 2 branches. Do you wish to continue? (y/n)')
-                exit
-              end
-            end
-
-            if system("git checkout -b #{options[:base_branch]} origin/#{options[:base_branch]} > /dev/null 2>&1") != true
-              logger.warn "SCRIPT_LOGGER:: Failed to checkout #{options[:base_branch]} from remote, checking if locally available"
-              if system("git checkout #{options[:base_branch]} > /dev/null 2>&1") != true
-                logger.error 'SCRIPT_LOGGER:: Failed to checkout branch locally, unable to continue'
-                exit
-              end
-            end
-            logger.info 'SCRIPT_LOGGER:: Successfully checked out the current branch'
-            if system("git checkout -b #{forward_branch}") != true
-              logger.error 'SCRIPT_LOGGER:: Failed to create new branch.'
-              exit
-            else
-              logger.info 'SCRIPT_LOGGER:: Branch created'
-            end
-          end
-
-          git_utilities.safe_merge(forward_branch, options[:merge_branch])
-
-          pushed = false
-          if options[:push]
-            logger.info "SCRIPT_LOGGER:: Pushing #{forward_branch} to origin"
-            git_utilities.push_to_origin(forward_branch)
-            pushed = true
-          elsif !options[:automatic]
-            if git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: Do you want to push to master? (Required for pull request)(y/n)')
-              logger.info "SCRIPT_LOGGER:: Pushing #{forward_branch} to origin"
-              git_utilities.push_to_origin(forward_branch)
-              pushed = true
-            else
-              exit
-            end
-          end
-
-          if options[:generate_pull_request]
-            if pushed
-              logger.info 'SCRIPT_LOGGER:: Creating pull request'
-              github_utilities.forward_merge_pull_request(forward_branch, current_branch, token)
-            else
-              logger.info 'SCRIPT_LOGGER:: Unable to create pull request, as the changes have not been pushed.'
-            end
-            exit
-          end
-
-          if options[:force_merge]
-            git_utilities.final_clean_merge(current_branch, forward_branch)
-          end
-
-          unless options[:automatic]
-            system("git diff origin/#{forward_branch} #{options[:base_branch]}")
-            if git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: Based on the above diff, do you want to create a pull request? (y/n)')
-              github_utilities.forward_merge_pull_request(forward_branch, options[:base_branch], token)
-              exit
-            end
-            if git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: Do you want to finish the merge without a pull request? (y/n)')
-              git_utilities.final_clean_merge(options[:base_branch], forward_branch)
-            end
-          end
-    end
+          forward_merger = ForwardMerge.new(logger, git_utilities, options)
+          forward_merger.merge
+          logger.info "Exiting..."
+        end
       end
     end
     desc 'Clean up a previous aborted forward merge request'
@@ -268,6 +119,7 @@ module Gitkeep
       c.flag %i[r repo_name], type: String
       c.desc 'Clean up remote branch too'
       c.switch %i[p push_delete_to_origin]
+      c.desc 'Output the autocomplete list for clean'
       c.switch %i[c complete]
       c.desc 'Output local branch list'
       c.switch %i[output_local]
@@ -275,7 +127,7 @@ module Gitkeep
       c.switch %i[output_remote]
       c.action do |_global_options, options, _args|
         logger = Logger.new(STDOUT)
-        git_utilities = GitUtils.new(logger, Dir.getwd)
+        git_utilities = GitUtils.new(logger)
         if options[:complete]
           options.each_key do |key|
             if key.length > 2
@@ -301,17 +153,29 @@ module Gitkeep
       c.flag %i[o oauth_token], type: String
       c.desc 'Delete the configured oauth token for the merge script'
       c.switch %i[d delete_token]
+      c.desc 'Output the autocomplete list for setup'
+      c.switch %i[c complete]
       c.action do |_global_options, options, _args|
         logger = Logger.new(STDOUT)
         token_utilities = TokenUtils.new(logger)
-        if options[:delete_token]
-          token_utilities.remove('merge_script')
-        else
-          unless options[:oauth_token]
-            logger.error 'SCRIPT_LOGGER:: Need an oauth token to set! use -o TOKEN_STRING'
-            exit
+        if options[:complete]
+          options.each_key do |key|
+            if key.length > 2
+              puts '--' << key.to_s
+            else
+              puts '-' << key.to_s
+              end
           end
-          token_utilities.save('merge_script', options[:oauth_token])
+        else
+          if options[:delete_token]
+            token_utilities.remove('merge_script')
+          else
+            unless options[:oauth_token]
+              logger.error 'SCRIPT_LOGGER:: Need an oauth token to set! use -o TOKEN_STRING'
+              exit
+            end
+            token_utilities.save('merge_script', options[:oauth_token])
+          end
         end
       end
     end
