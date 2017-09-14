@@ -104,7 +104,7 @@ module Gitkeep
         else
           forward_merger = ForwardMerge.new(logger, git_utilities, options)
           forward_merger.merge
-          logger.info "Exiting..."
+          logger.info 'Exiting...'
         end
       end
     end
