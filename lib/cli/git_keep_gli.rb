@@ -8,7 +8,7 @@ require_relative 'forward_merge'
 module Gitkeep
   module CLI
     help_text = "Performs a forward merge and pull request on
-    shopkeeps ipad-register repo. Run inside the repo.
+    Shopkeep's ipad-register repo. Run inside the repo.
 
     Requires gems ruby-git and gli.
 
@@ -115,8 +115,6 @@ module Gitkeep
       c.flag %i[b base_branch], type: String
       c.desc 'Pass a merge branch'
       c.flag %i[m merge_branch], type: String
-      c.desc 'Pass a repo name e.g. Shopkeep/ipad-register'
-      c.flag %i[r repo_name], type: String
       c.desc 'Clean up remote branch too'
       c.switch %i[p push_delete_to_origin]
       c.desc 'Output the autocomplete list for clean'

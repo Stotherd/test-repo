@@ -82,7 +82,7 @@ class GitUtils
       @logger.info "SCRIPT_LOGGER:: unable to merge - CTRL-C to exit or press
       enter to continue after all conflicts resolved"
       until merge_complete?(to_be_merged_in_branch)
-        gets
+        $stdin.gets
         @logger.error "SCRIPT_LOGGER:: There are still unresolved conflicts,
         or the repo isn't clean and the merge would break a change, or another
         issue with git preventing continuing."

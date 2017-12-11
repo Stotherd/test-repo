@@ -1468,7 +1468,7 @@ __git_fetch_options="
 
 _git_fetch ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	case "$cur" in
 	--recurse-submodules=*)
 		__gitcomp "$__git_fetch_recurse_submodules" "" "${cur##--recurse-submodules=}"
@@ -1493,7 +1493,6 @@ __git_format_patch_options="
 
 _git_format_patch ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	case "$cur" in
 	--thread=*)
 		__gitcomp "
@@ -1511,7 +1510,6 @@ _git_format_patch ()
 
 _git_fsck ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	case "$cur" in
 	--*)
 		__gitcomp "
@@ -1525,7 +1523,6 @@ _git_fsck ()
 
 _git_gc ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	case "$cur" in
 	--*)
 		__gitcomp "--prune --aggressive"
@@ -1536,7 +1533,6 @@ _git_gc ()
 
 _git_gitk ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
 	_gitk
 }
 
@@ -1546,7 +1542,7 @@ _git_gitk ()
 # 3: A prefix to be added to each listed symbol name (optional).
 # 4: A suffix to be appended to each listed symbol name (optional).
 __git_match_ctag () {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	awk -v pfx="${3-}" -v sfx="${4-}" "
 		/^${1//\//\\/}/ { print pfx \$1 sfx }
 		" "$2"
@@ -1562,7 +1558,7 @@ __git_match_ctag () {
 # --sfx=<suffix>: A suffix to be appended to each symbol name instead
 #                 of the default space.
 __git_complete_symbol () {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	local tags=tags pfx="" cur_="${cur-}" sfx=" "
 
 	while test $# != 0; do
@@ -1583,7 +1579,7 @@ __git_complete_symbol () {
 
 _git_grep ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	__git_has_doubledash && return
 
 	case "$cur" in
@@ -1618,7 +1614,7 @@ _git_grep ()
 
 _git_help ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	case "$cur" in
 	--*)
 		__gitcomp "--all --guides --info --man --web"
@@ -1636,7 +1632,7 @@ _git_help ()
 
 _git_init ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	case "$cur" in
 	--shared=*)
 		__gitcomp "
@@ -1653,7 +1649,7 @@ _git_init ()
 
 _git_ls_files ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	case "$cur" in
 	--*)
 		__gitcomp "--cached --deleted --modified --others --ignored
@@ -1674,7 +1670,7 @@ _git_ls_files ()
 
 _git_ls_remote ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	case "$cur" in
 	--*)
 		__gitcomp "--heads --tags --refs --get-url --symref"
@@ -1686,7 +1682,7 @@ _git_ls_remote ()
 
 _git_ls_tree ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	__git_complete_file
 }
 
@@ -1718,7 +1714,7 @@ __git_log_date_formats="relative iso8601 rfc2822 short local default raw"
 
 _git_log ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	__git_has_doubledash && return
 	__git_find_repo_path
 
@@ -1813,7 +1809,7 @@ __git_merge_options="
 
 _git_merge ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	__git_complete_strategy && return
 
 	case "$cur" in
@@ -1827,7 +1823,7 @@ _git_merge ()
 
 _git_mergetool ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	case "$cur" in
 	--tool=*)
 		__gitcomp "$__git_mergetools_common tortoisemerge" "" "${cur##--tool=}"
@@ -1842,7 +1838,7 @@ _git_mergetool ()
 
 _git_merge_base ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	case "$cur" in
 	--*)
 		__gitcomp "--octopus --independent --is-ancestor --fork-point"
@@ -1854,7 +1850,7 @@ _git_merge_base ()
 
 _git_mv ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	case "$cur" in
 	--*)
 		__gitcomp "--dry-run"
@@ -1873,13 +1869,13 @@ _git_mv ()
 
 _git_name_rev ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	__gitcomp "--tags --all --stdin"
 }
 
 _git_notes ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	local subcommands='add append copy edit list prune remove show'
 	local subcommand="$(__git_find_on_cmdline "$subcommands")"
 
@@ -1927,7 +1923,7 @@ _git_notes ()
 
 _git_pull ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	__git_complete_strategy && return
 
 	case "$cur" in
@@ -1951,7 +1947,7 @@ __git_push_recurse_submodules="check on-demand only"
 
 __git_complete_force_with_lease ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	local cur_=$1
 
 	case "$cur_" in
@@ -1968,7 +1964,7 @@ __git_complete_force_with_lease ()
 
 _git_push ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	case "$prev" in
 	--repo)
 		__gitcomp_nl "$(__git_remotes)"
@@ -2007,7 +2003,7 @@ _git_push ()
 
 _git_rebase ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	__git_find_repo_path
 	if [ -f "$__git_repo_path"/rebase-merge/interactive ]; then
 		__gitcomp "--continue --skip --abort --quit --edit-todo"
@@ -2044,7 +2040,7 @@ _git_rebase ()
 
 _git_reflog ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	local subcommands="show delete expire"
 	local subcommand="$(__git_find_on_cmdline "$subcommands")"
 
@@ -2060,7 +2056,7 @@ __git_send_email_suppresscc_options="author self cc bodycc sob cccmd body all"
 
 _git_send_email ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	case "$prev" in
 	--to|--cc|--bcc|--from)
 		__gitcomp "$(__git send-email --dump-aliases)"
@@ -2115,13 +2111,13 @@ _git_send_email ()
 
 _git_stage ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	_git_add
 }
 
 _git_status ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	local complete_opt
 	local untracked_state
 
@@ -2172,7 +2168,7 @@ _git_status ()
 
 __git_config_get_set_variables ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	local prevword word config_file= c=$cword
 	while [ $c -gt 1 ]; do
 		word="${words[c]}"
@@ -2195,7 +2191,7 @@ __git_config_get_set_variables ()
 
 _git_config ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	case "$prev" in
 	branch.*.remote|branch.*.pushremote)
 		__gitcomp_nl "$(__git_remotes)"
@@ -2686,7 +2682,7 @@ _git_config ()
 
 _git_remote ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	local subcommands="
 		add rename remove set-head set-branches
 		get-url set-url show prune update
@@ -2742,7 +2738,7 @@ _git_remote ()
 
 _git_replace ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	case "$cur" in
 	--*)
 		__gitcomp "--edit --graft --format= --list --delete"
@@ -2754,7 +2750,7 @@ _git_replace ()
 
 _git_rerere ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	local subcommands="clear forget diff remaining status gc"
 	local subcommand="$(__git_find_on_cmdline "$subcommands")"
 	if test -z "$subcommand"
@@ -2766,7 +2762,7 @@ _git_rerere ()
 
 _git_reset ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	__git_has_doubledash && return
 
 	case "$cur" in
@@ -2780,7 +2776,7 @@ _git_reset ()
 
 _git_revert ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	__git_find_repo_path
 	if [ -f "$__git_repo_path"/REVERT_HEAD ]; then
 		__gitcomp "--continue --quit --abort"
@@ -2800,7 +2796,7 @@ _git_revert ()
 
 _git_rm ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	case "$cur" in
 	--*)
 		__gitcomp "--cached --dry-run --ignore-unmatch --quiet"
@@ -2813,7 +2809,7 @@ _git_rm ()
 
 _git_shortlog ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	__git_has_doubledash && return
 
 	case "$cur" in
@@ -2831,7 +2827,7 @@ _git_shortlog ()
 
 _git_show ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	__git_has_doubledash && return
 
 	case "$cur" in
@@ -2861,7 +2857,7 @@ _git_show ()
 
 _git_show_branch ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	case "$cur" in
 	--*)
 		__gitcomp "
@@ -2878,7 +2874,7 @@ _git_show_branch ()
 
 _git_stash ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	local save_opts='--all --keep-index --no-keep-index --quiet --patch --include-untracked'
 	local subcommands='push save list show apply clear drop pop create branch'
 	local subcommand="$(__git_find_on_cmdline "$subcommands")"
@@ -2929,7 +2925,7 @@ _git_stash ()
 
 _git_submodule ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	__git_has_doubledash && return
 
 	local subcommands="add status init deinit update summary foreach sync"
@@ -2976,7 +2972,7 @@ _git_submodule ()
 
 _git_svn ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	local subcommands="
 		init fetch clone rebase dcommit log find-rev
 		set-tree commit-diff info create-ignore propget
@@ -3075,7 +3071,7 @@ _git_svn ()
 
 _git_tag ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	local i c=1 f=0
 	while [ $c -lt $cword ]; do
 		i="${words[c]}"
@@ -3117,13 +3113,13 @@ _git_tag ()
 
 _git_whatchanged ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	_git_log
 }
 
 _git_worktree ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	local subcommands="add list lock prune unlock"
 	local subcommand="$(__git_find_on_cmdline "$subcommands")"
 	if [ -z "$subcommand" ]; then
@@ -3150,7 +3146,7 @@ _git_worktree ()
 
 __git_main ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	local i c=1 command __git_dir __git_repo_path
 	local __git_C_args C_args_count=0
 
@@ -3221,7 +3217,7 @@ __git_main ()
 
 __gitk_main ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	__git_has_doubledash && return
 
 	local __git_repo_path
@@ -3245,7 +3241,7 @@ __gitk_main ()
 }
 
 if [[ -n ${ZSH_VERSION-} ]]; then
-echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
     echo "WARNING: this script is deprecated, please see git-completion.zsh" 1>&2
 
 	autoload -U +X compinit && compinit
@@ -3320,7 +3316,7 @@ fi
 
 __git_func_wrap ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	local cur words cword prev
 	_get_comp_words_by_ref -n =: cur words cword prev
 	$1
@@ -3331,7 +3327,7 @@ __git_func_wrap ()
 # This is NOT a public function; use at your own risk.
 __git_complete ()
 {
-    echo " ${FUNCNAME[0]} LINENO: ${LINENO}"
+
 	local wrapper="__git_wrap${2}"
 	eval "$wrapper () { __git_func_wrap $2 ; }"
 	complete -o bashdefault -o default -o nospace -F $wrapper $1 2>/dev/null \

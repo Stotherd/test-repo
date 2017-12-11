@@ -7,7 +7,7 @@ module Gitkeep
     include GLI::App
     extend self
 
-    program_desc 'GLI gitkeep'
+    program_desc 'gitkeep - a tool for managing git and github'
     subcommand_option_handling :normal
     arguments :strict
 

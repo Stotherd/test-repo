@@ -34,7 +34,7 @@ class ForwardMerge
       @logger.error 'Incomplete parameters'
       return false
     end
-    return true
+    true
   end
 
   def check_previous_requests
@@ -50,7 +50,7 @@ class ForwardMerge
         end
       end
     end
-    return true
+    true
   end
 
   def verify_branch_state
@@ -64,7 +64,7 @@ class ForwardMerge
     remote_forward_branch_present = false
 
     if @git_utilities.remote_branch?(@options[:merge_branch]) == false
-      @logger.warn "SCRIPT_LOGGER:: Remote branch #{@options[:merge_branch]} does not exist - exiting."
+      @logger.error "SCRIPT_LOGGER:: Remote branch #{@options[:merge_branch]} does not exist."
       return [remote_merge_branch_present, local_forward_branch_present, remote_forward_branch_present]
     end
 
@@ -134,7 +134,7 @@ class ForwardMerge
         @logger.info 'SCRIPT_LOGGER:: Branch created'
       end
     end
-    return true
+    true
   end
 
   def perform_push
@@ -163,7 +163,7 @@ class ForwardMerge
       else
         @logger.info 'SCRIPT_LOGGER:: Unable to create pull request, as the changes have not been pushed.'
       end
-        return false
+      return false
     end
 
     if @options[:force_merge]
