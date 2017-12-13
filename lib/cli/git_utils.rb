@@ -45,7 +45,7 @@ class GitUtils
 
   def obtain_latest
     @git.fetch
-    @git.pull
+    @git.pull(@git.remote, @git.current_branch) 
   end
 
   def checkout_local_branch(branch_name)

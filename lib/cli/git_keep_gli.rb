@@ -72,7 +72,7 @@ module Gitkeep
       c.flag %i[b base_branch], type: String
       c.desc 'Pass a merge branch'
       c.flag %i[m merge_branch], type: String
-      c.desc 'Push the generated branch to master'
+      c.desc 'Push the generated branch to origin'
       c.switch %i[p push]
       c.desc 'Generate a pull request'
       c.switch %i[g generate_pull_request]
