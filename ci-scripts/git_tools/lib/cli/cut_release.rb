@@ -50,7 +50,9 @@ class CutRelease
       return false
     end
     true
-  end  def verify_develop_state
+  end
+
+  def verify_develop_state
     @git_utilities.obtain_latest
     @git_utilities.checkout_local_branch('develop')
 
