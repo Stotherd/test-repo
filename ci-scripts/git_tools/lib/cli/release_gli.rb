@@ -25,12 +25,6 @@ module Gitkeep
         git_utilities = GitUtils.new(logger)
         release_cutter = CutRelease.new(logger, git_utilities, options)
         release_cutter.cut_release
-        # checkout develop OR sha specified
-        # cut release branch (git_utils)
-        # create branch for version number change (git_utils)
-        # update branch version number (new file - code_utils)
-        # commit, push and raise PR (github_utils)
-        # update dashboard (new file - dashboard_utils?)
         # inform stakeholders * needs email libs and mailing list, and possible slack integration (new file(s) notification?
         # do Jira stuff (TBD)
       end

@@ -2,30 +2,30 @@
 require 'net/http'
 require 'json'
 require 'ostruct'
-class GitHubUtils
+class DashboardUtils
   def initialize(log)
     @logger = log
   end
-  
-  def dashboard_cut_new_release(version, branch_name, state)
+
+  def dashboard_cut_new_release(version, branch_name)
     return false unless !release_exists(version)
     create_release(version, branch_name)
     #fire request to create a new release (no build yet)
     #fire request to set state to state N.B should be Alpha for a new release
   end
-  
+
   def change_release_state_to_beta(version, build)
     return false unless release_exists(version)
     #set build with date
     #set state
   end
-  
+
   def release_release(version, build)
     return false unless release_exists(version)
     #set build with date
     #set state
-  end  
-  
+  end
+
   def build_http_request(uri_tail, type)
     uri = URI("http://releases.office.production.posrip.com/releases/#{uri_tail}")
     if type == 'POST'
@@ -34,6 +34,7 @@ class GitHubUtils
     elsif type == 'GET'
       req = Net::HTTP::Get.new(uri)
     end
+    @logger.info "req"
     Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
       http.request(req)
     end
@@ -45,12 +46,13 @@ class GitHubUtils
     res.body.include? "version\": \"#{version}"
   end
 
-  
-  def create_release(version_name, branch)
+
+  def create_release(version_name, branch_name)
     body = { version: version_name,
              code_complete_date: current_date,
              branch_name: branch_name,
-             state; "alpha" }.to_json
-    build_http_request('/releases', 'POST', body, oauth_token)
+             state: "alpha" }.to_json
+    res = build_http_request('/releases', 'POST', body, oauth_token)
+    @logger.info res
   end
 end
