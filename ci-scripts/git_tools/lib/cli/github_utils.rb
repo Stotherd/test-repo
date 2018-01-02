@@ -84,7 +84,6 @@ class GitHubUtils
                        oauth_token)
   end
 
-
   def release_version_pull_request(version_branch, release_branch, oauth_token)
     title = "Bumping version number for #{release_branch}"
     body_text = "Automated pull request to bump the version number for #{release_branch}"
@@ -113,7 +112,6 @@ class GitHubUtils
       exit
     end
   end
-
 
   def add_label_to_issue(issue_number, label, oauth_token)
     build_http_request("/issues/#{issue_number}/labels", 'POST', "[\n\"#{label}\"\n]", oauth_token)
