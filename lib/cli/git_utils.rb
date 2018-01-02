@@ -51,10 +51,30 @@ class GitUtils
   def checkout_local_branch(branch_name)
     @git.checkout(branch_name)
   end
+  
+  def new_branch(branch_name)
+    @logger.info "branch creating: #{branch_name}"
+  	@git.branch(branch_name)
+  	@git.branch(branch_name).checkout
+  end
+  
+  def add_file_to_commit(filename)
+  	@git.add(filename)
+  end
+  
+  def commit_changes(message)
+  	@git.commit(message)
+  end
 
   def forward_branch_name(base_branch, merge_branch)
     "forward-merge-#{merge_branch}-to-#{base_branch}"
   end
+  
+  def release_branch_name(version)
+    "release/#{version}"
+  end
+  
+  
 
   def branch_up_to_date?(branch_you_are_on, branch_to_be_checked_against)
     sha_of_to_be_merged = `git rev-parse origin/#{branch_to_be_checked_against}`

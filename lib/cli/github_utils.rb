@@ -84,6 +84,36 @@ class GitHubUtils
                        oauth_token)
   end
 
+
+  def release_version_pull_request(version_branch, release_branch, oauth_token)
+    title = "Bumping version number for #{release_branch}"
+    body_text = "Automated pull request to bump the version number for #{release_branch}"
+    body = { title: title,
+             body: body_text,
+             head: version_branch,
+             base: release_branch }.to_json
+    res = build_http_request('/pulls', 'POST', body, oauth_token)
+    if res.body.include? 'state\":\"open'
+      issue = issue_url(res.body)
+      @logger.info "SCRIPT_LOGGER:: Created pull request:
+      #{title}: #{issue}"
+    else
+      @logger.error 'SCRIPT_LOGGER:: Could not create the pull request -
+      response to network request was: '
+      @logger.error res.body
+      @logger.error "SCRIPT_LOGGER:: reverting back to #{release_branch}"
+      system("git checkout #{release_branch} > /dev/null 2>&1")
+      @logger.error "SCRIPT_LOGGER:: checked out #{release_branch}."
+      @logger.error "SCRIPT_LOGGER::
+      ================ The pull request was rejected by github. ================
+
+      Please see log above for an indication of the error. The #{release_branch}
+      branch has been checked out."
+      exit
+    end
+  end
+
+
   def add_label_to_issue(issue_number, label, oauth_token)
     build_http_request("/issues/#{issue_number}/labels", 'POST', "[\n\"#{label}\"\n]", oauth_token)
   end

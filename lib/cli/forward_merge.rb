@@ -144,7 +144,7 @@ class ForwardMerge
       @git_utilities.push_to_origin(forward_branch)
       pushed = true
     elsif !@options[:automatic]
-      if @git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: Do you want to push to master? (Required for pull request)(y/n)')
+      if @git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: Do you want to push to origin? (Required for pull request)(y/n)')
         @logger.info "SCRIPT_LOGGER:: Pushing #{forward_branch} to origin"
         @git_utilities.push_to_origin(forward_branch)
         pushed = true
