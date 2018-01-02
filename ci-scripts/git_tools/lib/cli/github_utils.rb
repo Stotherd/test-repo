@@ -94,7 +94,7 @@ class GitHubUtils
              base: release_branch }.to_json
     @logger.info "Body is: #{body}"
     res = build_http_request('/pulls', 'POST', body, oauth_token)
-    if res.body.include? 'state\":\"open'
+    if res.body.include? 'state":"open'
       issue = issue_url(res.body)
       @logger.info "SCRIPT_LOGGER:: Created pull request:
       #{title}: #{issue}"
