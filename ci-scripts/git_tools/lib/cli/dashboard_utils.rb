@@ -37,7 +37,7 @@ class DashboardUtils
       req = Net::HTTP::Get.new(uri)
     end
     @logger.info "req"
-    Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+    Net::HTTP.start(uri.hostname, uri.port, use_ssl: false) do |http|
       http.request(req)
     end
   end
