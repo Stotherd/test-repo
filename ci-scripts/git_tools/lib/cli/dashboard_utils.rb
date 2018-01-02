@@ -28,7 +28,7 @@ class DashboardUtils
     #set state
   end
 
-  def build_http_request(uri_tail, type)
+  def build_http_request(uri_tail, type, body)
     uri = URI("http://releases.office.production.posrip.com/releases/#{uri_tail}")
     if type == 'POST'
       req = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
@@ -58,7 +58,7 @@ class DashboardUtils
              code_complete_date: current_date,
              branch_name: branch_name,
              state: "alpha" }.to_json
-    res = build_http_request('/releases', 'POST', body, oauth_token)
+    res = build_http_request('/releases', 'POST', body)
     @logger.info res
   end
 end
