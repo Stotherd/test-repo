@@ -6,12 +6,13 @@ require_relative 'token_utils'
 require_relative 'github_utils'
 require_relative 'forward_merge'
 require_relative 'cut_release'
+require_relative 'notification'
 
 module Gitkeep
   module CLI
     help_text = "Does release stuff"
     desc help_text
-   
+
     desc 'Cut a release branch and perform post release steps'
     arg_name '<args>...', %i[multiple]
     command :cut_release do |c|
@@ -32,8 +33,22 @@ module Gitkeep
            #commit, push and raise PR (github_utils)
            #update dashboard (new file - dashboard_utils?)
            #inform stakeholders * needs email libs and mailing list, and possible slack integration (new file(s) notification?
+           notification = Notification.new(logger, git_utilities, options)
+           notification.email_branch_creation
            #do Jira stuff (TBD)
-           
+
+       end
+    end
+    command :notify_branch_creation do |c|
+       c.desc 'The new release branch name'
+       c.flag %i[v version], type: String
+
+       c.action do |_global_option, options, _args|
+           logger = Logger.new(STDOUT)
+           logger.info "Sending branch creation notification: #{options[:version]}"
+           git_utilities = GitUtils.new(logger)
+           notification = Notification.new(logger, git_utilities, options)
+           notification.email_branch_creation
        end
     end
   end
