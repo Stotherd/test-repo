@@ -6,6 +6,7 @@ require_relative 'token_utils'
 require_relative 'github_utils'
 require_relative 'forward_merge'
 require_relative 'cut_release'
+require_relative 'dashboard_utils'
 
 module Gitkeep
   module CLI
@@ -25,11 +26,8 @@ module Gitkeep
         git_utilities = GitUtils.new(logger)
         release_cutter = CutRelease.new(logger, git_utilities, options)
         release_cutter.cut_release
-        # checkout develop OR sha specified
-        # cut release branch (git_utils)
-        # create branch for version number change (git_utils)
-        # update branch version number (new file - code_utils)
-        # commit, push and raise PR (github_utils)
+        dashboard_utils = DashboardUtils.new(logger)
+        dashboard_utils.dashboard_cut_new_release(version, branch_name, state)
         # update dashboard (new file - dashboard_utils?)
         # inform stakeholders * needs email libs and mailing list, and possible slack integration (new file(s) notification?
         # do Jira stuff (TBD)
