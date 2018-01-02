@@ -92,6 +92,7 @@ class GitHubUtils
              body: body_text,
              head: version_branch,
              base: release_branch }.to_json
+    @logger.info "Body is: #{body}"
     res = build_http_request('/pulls', 'POST', body, oauth_token)
     if res.body.include? 'state\":\"open'
       issue = issue_url(res.body)

@@ -30,7 +30,7 @@ class CutRelease
     return false unless code_utilities.change_xcode_version(@options[:version])
     @git_utilities.add_file_to_commit("../../Register/Register.xcodeproj/project.pbxproj")
     @git_utilities.commit_changes("Updating version number to #{@options[:version]}")
-    @git_utilities.push_to_origin(release_branch)
+    @git_utilities.push_to_origin(version_branch)
     @github_utilities.release_version_pull_request(version_branch, release_branch, @token)
     #update dashboard (new file - dashboard_utils?)
     #inform stakeholders * needs email libs and mailing list, and possible slack integration (new file(s) notification?)
