@@ -7,6 +7,7 @@ require_relative 'github_utils'
 require_relative 'forward_merge'
 require_relative 'cut_release'
 require_relative 'dashboard_utils'
+require_relative 'notification'
 
 module Gitkeep
   module CLI
