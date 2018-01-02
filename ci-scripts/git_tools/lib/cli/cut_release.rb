@@ -1,5 +1,6 @@
 require 'fileutils'
 require_relative 'code_utils'
+require_relative 'dashboard_utils'
 
 class CutRelease
   def initialize(logger, git_utilities, options)
@@ -32,7 +33,7 @@ class CutRelease
     @git_utilities.commit_changes("Updating version number to #{@options[:version]}")
     @git_utilities.push_to_origin(version_branch)
     @github_utilities.release_version_pull_request(version_branch, release_branch, @token)
-    dashboard_utils = DashboardUtils.new(logger)
+    dashboard_utils = DashboardUtils.new(@logger)
     dashboard_utils.dashboard_cut_new_release(options[:version], release_branch)
     # update dashboard (new file - dashboard_utils?)
     # inform stakeholders * needs email libs and mailing list, and possible slack integration (new file(s) notification?)
