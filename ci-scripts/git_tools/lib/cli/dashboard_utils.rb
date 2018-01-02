@@ -2,6 +2,8 @@
 require 'net/http'
 require 'json'
 require 'ostruct'
+require 'date'
+
 class DashboardUtils
   def initialize(log)
     @logger = log
@@ -46,6 +48,10 @@ class DashboardUtils
     res.body.include? "version\": \"#{version}"
   end
 
+  def current_date
+    date = Time.new
+    date.year.to_s + "-" + date.month.to_s + "-" + date.day.to_s
+  end
 
   def create_release(version_name, branch_name)
     body = { version: version_name,
