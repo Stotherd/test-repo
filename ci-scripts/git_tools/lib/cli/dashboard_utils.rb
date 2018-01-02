@@ -29,14 +29,13 @@ class DashboardUtils
   end
 
   def build_http_request(uri_tail, type, body)
-    uri = URI("http://releases.office.production.posrip.com/releases/#{uri_tail}")
+    uri = URI("http://releases.office.production.posrip.com#{uri_tail}")
     if type == 'POST'
       req = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
       req.body = body
     elsif type == 'GET'
       req = Net::HTTP::Get.new(uri)
     end
-    @logger.info "req"
     Net::HTTP.start(uri.hostname, uri.port, use_ssl: false) do |http|
       http.request(req)
     end
