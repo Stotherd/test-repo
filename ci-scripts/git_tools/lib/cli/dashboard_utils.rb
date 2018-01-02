@@ -8,20 +8,20 @@ class DashboardUtils
   end
 
   def dashboard_cut_new_release(version, branch_name)
-    return false unless !release_exists(version)
+    return false unless !release_exists?(version)
     create_release(version, branch_name)
     #fire request to create a new release (no build yet)
     #fire request to set state to state N.B should be Alpha for a new release
   end
 
   def change_release_state_to_beta(version, build)
-    return false unless release_exists(version)
+    return false unless release_exists?(version)
     #set build with date
     #set state
   end
 
   def release_release(version, build)
-    return false unless release_exists(version)
+    return false unless release_exists?(version)
     #set build with date
     #set state
   end
