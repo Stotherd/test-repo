@@ -14,9 +14,13 @@ fi`
 
 Run bundler install
 
-Then, run the setup command with an oauth token from github to add it to your keychain, using the command:
+Then, run the setup command to configure for use. Supply your oauth token from github and this will be added to your keychain along with an email address you want to send from, using the command:
 
-`./gitkeep setup -o [OAUTH_TOKEN]`
+`./gitkeep setup -o [OAUTH_TOKEN] -e [EMAIL_ADDRESS]`
+
+You will then be promoted for your email password which will be stored in your keychain:
+
+`Enter email password:`
 
 And then you're ready to use the script.
 
