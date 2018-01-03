@@ -1,4 +1,5 @@
 require 'logger'
+require 'io/console'
 
 require_relative 'git_utils'
 require_relative 'token_utils'
@@ -153,6 +154,8 @@ module Gitkeep
       c.switch %i[d delete_token]
       c.desc 'Output the autocomplete list for setup'
       c.switch %i[c complete]
+      c.desc 'The email address to be used in setup'
+      c.flag %i[e email_address], type: String
       c.action do |_global_options, options, _args|
         logger = Logger.new(STDOUT)
         token_utilities = TokenUtils.new(logger)
@@ -167,9 +170,27 @@ module Gitkeep
         elsif options[:delete_token]
           token_utilities.remove('merge_script')
         else
-          unless options[:oauth_token]
-            logger.error 'SCRIPT_LOGGER:: Need an oauth token to set! use -o TOKEN_STRING'
-            exit
+          if options[:delete_token]
+            token_utilities.remove('merge_script')
+            token_utilities.remove('merge_script_email_address')
+            token_utilities.remove('merge_script_email_password')
+          else
+            unless options[:oauth_token]
+              logger.error 'SCRIPT_LOGGER:: Need an oauth token to set! use -o TOKEN_STRING'
+              exit
+            end
+            unless options[:email_address]
+              logger.error 'SCRIPT_LOGGER:: Need an email address to set! use -e EMAIL_STRING'
+              exit
+            end
+
+            print "Enter email password: "
+            email_password = STDIN.noecho(&:gets).chomp
+
+            logger.info 'Saving merge_script token'
+            token_utilities.save('merge_script', options[:oauth_token])
+            token_utilities.save('merge_script_email_address', options[:email_address])
+            token_utilities.save('merge_script_email_password', email_password)
           end
           token_utilities.save('merge_script', options[:oauth_token])
         end

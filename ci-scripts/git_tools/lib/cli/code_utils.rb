@@ -10,11 +10,11 @@ class CodeUtils
                       "CURRENT_PROJECT_VERSION = #{version}")
 
       @logger.info "XCode CURRENT_PROJECT_VERSION changed to #{version}"
-      return true
+      true
 
     else
       @logger.info 'Unable to convert xcode version'
-      return false
+      false
 
     end
   end
