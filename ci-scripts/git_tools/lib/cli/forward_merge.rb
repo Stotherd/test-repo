@@ -163,7 +163,7 @@ class ForwardMerge
   end
 
   def github_automatic_ops
-    return unless @options[:automatic]
+    return if @options[:automatic]
     system("git diff origin/#{forward_branch} #{@options[:base_branch]}")
     return true unless @git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: Based on the above diff, do you want to create a pull request? (y/n)')
     @github_utilities.forward_merge_pull_request(forward_branch, @options[:base_branch], @token)
