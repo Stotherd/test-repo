@@ -51,7 +51,7 @@ class GitHubUtils
     branch_exists = false
     JSON.parse(build_http_request('/pulls', 'GET', nil, oauth_token).body).each do |i|
       branch_exists = both_branches_present?(i['url'], i['head']['ref'], i['base']['ref'], branch_a, branch_b)
-      next unless branch_present?(url, head, base, branch_a)
+      next unless branch_present?(i['url'], i['head']['ref'], i['base']['ref'], branch_a)
       branch_exists = true
     end
     branch_exists
