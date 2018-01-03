@@ -27,8 +27,6 @@ module Gitkeep
         git_utilities = GitUtils.new(logger)
         release_cutter = CutRelease.new(logger, git_utilities, options)
         release_cutter.cut_release
-        notification = Notification.new(logger, git_utilities, options)
-        notification.email_branch_creation
         # do Jira stuff (TBD)
       end
     end
