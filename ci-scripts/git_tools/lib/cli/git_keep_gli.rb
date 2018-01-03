@@ -162,18 +162,16 @@ module Gitkeep
               puts '--' << key.to_s
             else
               puts '-' << key.to_s
-              end
-          end
-        else
-          if options[:delete_token]
-            token_utilities.remove('merge_script')
-          else
-            unless options[:oauth_token]
-              logger.error 'SCRIPT_LOGGER:: Need an oauth token to set! use -o TOKEN_STRING'
-              exit
             end
-            token_utilities.save('merge_script', options[:oauth_token])
           end
+        elsif options[:delete_token]
+          token_utilities.remove('merge_script')
+        else
+          unless options[:oauth_token]
+            logger.error 'SCRIPT_LOGGER:: Need an oauth token to set! use -o TOKEN_STRING'
+            exit
+          end
+          token_utilities.save('merge_script', options[:oauth_token])
         end
       end
     end

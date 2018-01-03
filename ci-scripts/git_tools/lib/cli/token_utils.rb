@@ -14,9 +14,8 @@ class TokenUtils
   end
 
   def remove(app_name)
-    if system("security delete-generic-password -a #{ENV['USER']} -s #{app_name}")
-      @logger.info 'SCRIPT_LOGGER:: Key removed from keychain'
-    end
+    return unless system("security delete-generic-password -a #{ENV['USER']} -s #{app_name}")
+    @logger.info 'SCRIPT_LOGGER:: Key removed from keychain'
   end
 
   def find(app_name)

@@ -10,7 +10,7 @@ class CutRelease
     @token = token_utilities.find('merge_script')
     @github_utilities = GitHubUtils.new(logger, git_utilities.origin_repo_name)
     @options = options
-   end
+  end
 
   def release_branch
     @git_utilities.release_branch_name(@options[:version])
@@ -35,7 +35,6 @@ class CutRelease
     @github_utilities.release_version_pull_request(version_branch, release_branch, @token)
     dashboard_utils = DashboardUtils.new(@logger)
     dashboard_utils.dashboard_cut_new_release(@options[:version], release_branch)
-    # update dashboard (new file - dashboard_utils?)
     # inform stakeholders * needs email libs and mailing list, and possible slack integration (new file(s) notification?)
     # do Jira stuff (TBD)
     @logger.info 'complete, exiting'

@@ -6,7 +6,7 @@ class ForwardMerge
     @token = token_utilities.find('merge_script')
     @github_utilities = GitHubUtils.new(logger, git_utilities.origin_repo_name)
     @options = options
-   end
+  end
 
   def forward_branch
     @git_utilities.forward_branch_name(@options[:base_branch], @options[:merge_branch])
@@ -81,6 +81,13 @@ class ForwardMerge
     [remote_merge_branch_present, local_forward_branch_present, remote_forward_branch_present]
   end
 
+  def continue_after_diff?
+    return true unless @options[:automatic]
+    system("git diff origin/#{@options[:base_branch]} #{forward_branch}")
+    return false unless @git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: The above diff contains the differences between the 2 branches. Do you wish to continue with the merge? (y/n)')
+    true
+  end
+
   def create_branch_as_required(local_present, remote_present)
     if local_present || remote_present
       if local_present
@@ -95,12 +102,7 @@ class ForwardMerge
         return false
       end
       if @git_utilities.branch_up_to_date?(forward_branch, @options[:base_branch]) != true
-        unless @options[:automatic]
-          system("git diff origin/#{@options[:base_branch]} #{forward_branch}")
-          unless @git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: The above diff contains the differences between the 2 branches. Do you wish to continue with the merge? (y/n)')
-            return false
-          end
-        end
+        return false unless continue_after_diff?
         @logger.info "SCRIPT_LOGGER:: Updating #{forward_branch} with latest from #{@options[:base_branch]}"
         @git_utilitie.safe_merge(forward_branch, @options[:base_branch])
         @git_utilities.push_to_origin(forward_branch) if @options[:push] == true
@@ -155,6 +157,19 @@ class ForwardMerge
     pushed
   end
 
+  def force_merge_check
+    return unless @options[:force_merge]
+    @git_utilities.final_clean_merge(@options[:base_branch], forward_branch)
+  end
+
+  def github_automatic_ops
+    return unless @options[:automatic]
+    system("git diff origin/#{forward_branch} #{@options[:base_branch]}")
+    return true unless @git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: Based on the above diff, do you want to create a pull request? (y/n)')
+    @github_utilities.forward_merge_pull_request(forward_branch, @options[:base_branch], @token)
+    false
+  end
+
   def perform_github_ops(pushed)
     if @options[:generate_pull_request]
       if pushed
@@ -165,20 +180,9 @@ class ForwardMerge
       end
       return false
     end
-
-    if @options[:force_merge]
-      @git_utilities.final_clean_merge(@options[:base_branch], forward_branch)
-    end
-
-    unless @options[:automatic]
-      system("git diff origin/#{forward_branch} #{@options[:base_branch]}")
-      if @git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: Based on the above diff, do you want to create a pull request? (y/n)')
-        @github_utilities.forward_merge_pull_request(forward_branch, @options[:base_branch], @token)
-        return false
-      end
-      if @git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: Do you want to finish the merge without a pull request? (y/n)')
-        @git_utilities.final_clean_merge(@options[:base_branch], forward_branch)
-      end
-    end
+    force_merge_check
+    return false unless github_automatic_ops
+    return false unless @git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: Do you want to finish the merge without a pull request? (y/n)')
+    @git_utilities.final_clean_merge(@options[:base_branch], forward_branch)
   end
 end
