@@ -5,8 +5,7 @@ require 'gli'
 module Gitkeep
   module CLI
     include GLI::App
-
-    module_function
+    extend self
 
     program_desc 'gitkeep - a tool for managing git and github'
     subcommand_option_handling :normal
