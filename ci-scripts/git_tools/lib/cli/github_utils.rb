@@ -41,7 +41,7 @@ class GitHubUtils
   end
 
   def branch_present?(url, head, base, branch_a)
-    return false unless (base.include? branch_a
+    return false unless (base.include? branch_a)
     @logger.info "SCRIPT_LOGGER:: #{url}, #{head} into #{base}"
     @logger.info 'SCRIPT_LOGGER:: This ^^^ pull request base branch is the same as the branch we want to merge into.'
     true
