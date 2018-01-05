@@ -99,7 +99,7 @@ class GitHubUtils
                                                  body: body_text,
                                                  head: version_branch,
                                                  base: release_branch }.to_json, oauth_token)
-    verify_pull_request_opened?(res.body, title, current_branch)
+    verify_pull_request_opened?(res.body, title, version_branch)
   end
 
   def add_label_to_issue(issue_number, label, oauth_token)
