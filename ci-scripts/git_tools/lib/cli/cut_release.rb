@@ -1,6 +1,7 @@
 require 'fileutils'
 require_relative 'code_utils'
 require_relative 'dashboard_utils'
+require_relative 'jenkins_utils'
 
 class CutRelease
   def initialize(logger, git_utilities, options)
@@ -37,6 +38,8 @@ class CutRelease
     dashboard_utils.dashboard_cut_new_release(@options[:version], release_branch)
     notification = Notification.new(@logger, @git_utilities, @options)
     notification.email_branch_creation
+    jenkins_utils = JenkinsUtils.new
+    jenkins_utils.update_build_branch('Register-Beta-iTunes-Builder', release_branch, @token)
     # do Jira stuff (TBD)
     @logger.info 'complete, exiting'
   end

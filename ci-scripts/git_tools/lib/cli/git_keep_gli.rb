@@ -184,7 +184,7 @@ module Gitkeep
               exit
             end
 
-            print "Enter email password: "
+            print 'Enter email password: '
             email_password = STDIN.noecho(&:gets).chomp
 
             logger.info 'Saving merge_script token'
