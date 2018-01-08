@@ -39,7 +39,8 @@ class CutRelease
     notification = Notification.new(@logger, @git_utilities, @options)
     notification.email_branch_creation
     jenkins_utils = JenkinsUtils.new
-    jenkins_utils.update_build_branch('Register-Beta-iTunes-Builder', release_branch, @token)
+    jenkins_utils.update_build_branch('dev-dont-build-main-regression-multijob', release_branch, @token, 'REGISTER_BRANCH')
+    jenkins_utils.update_build_branch('Test-Register-Beta-iTunes-Builder', release_branch, @token, 'BRANCH_TO_BUILD')
     # do Jira stuff (TBD)
     @logger.info 'complete, exiting'
   end
