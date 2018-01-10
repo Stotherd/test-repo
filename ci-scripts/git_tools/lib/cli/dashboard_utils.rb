@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Utilites for using the github api
 require 'net/http'
 require 'json'

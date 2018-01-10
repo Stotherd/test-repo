@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'git'
 
 # Git utilities using the ruby gem ruby-git
@@ -137,5 +139,9 @@ class GitUtils
   def origin_repo_name
     str = @git.config('remote.origin.url')
     str.to_s.rpartition(':').last.rpartition('.').first
+  end
+
+  def log
+    @git.log
   end
 end

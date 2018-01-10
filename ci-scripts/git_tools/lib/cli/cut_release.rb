@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'fileutils'
 require_relative 'code_utils'
 require_relative 'dashboard_utils'
@@ -37,10 +39,10 @@ class CutRelease
     dashboard_utils = DashboardUtils.new(@logger)
     dashboard_utils.dashboard_cut_new_release(@options[:version], release_branch)
     notification = Notification.new(@logger, @git_utilities, @options)
-    notification.email_branch_creation
+    notification.email_branch_creation(get_prs_for_release)
     jenkins_utils = JenkinsUtils.new
-    jenkins_utils.update_build_branch('dev-dont-build-main-regression-multijob', release_branch, @token, 'REGISTER_BRANCH')
-    jenkins_utils.update_build_branch('Test-Register-Beta-iTunes-Builder', release_branch, @token, 'BRANCH_TO_BUILD')
+    jenkins_utils.update_build_branch('main_regression_multijob_branch', release_branch, @token, 'REGISTER_BRANCH')
+    jenkins_utils.update_build_branch('Register-Beta-iTunes-Builder', release_branch, @token, 'BRANCH_TO_BUILD')
     # do Jira stuff (TBD)
     @logger.info 'complete, exiting'
   end
@@ -69,5 +71,68 @@ class CutRelease
     end
     true
     # check sha if present
+  end
+
+  def open_pull_requests
+    @github_utilities.get_open_pull_requests(@token)
+  end
+
+  def closed_pull_requests
+    @github_utilities.get_closed_pull_requests(@token)
+  end
+
+  def single_pull_request
+    @github_utilities.get_single_pull_request(@token, @options[:pr_number])
+  end
+
+  def releases
+    @github_utilities.get_releases(@token)
+  end
+
+  def single_commit
+    @github_utilities.get_single_commit(@token, @options[:sha])
+  end
+
+  def verify_branch?
+    if @git_utilities.remote_branch?(@options[:previous_branch]) == false
+      @logger.warn 'Requested previous branch does not exist on remote: ' + @options[:previous_branch]
+      @logger.info 'Check your branch name and try again'
+      exit
+    end
+    true
+  end
+
+  def commits_for_release
+    return nil unless verify_branch?
+    @logger.info "Finding commits that are in origin/develop and not in origin/#{@options[:previous_branch]} (no merges)"
+    str_result = `git log origin/#{@options[:previous_branch]}..origin/develop --oneline --no-merges`
+    str_array = str_result.split "\n"
+    result = []
+    str_array.each do |str_|
+      result.push(str_.to_s.rpartition('/').last)
+    end
+    result
+  end
+
+  def get_commit_shas_for_release
+    return nil unless verify_branch?
+    @logger.info "Finding commits that are in origin/develop and not in origin/#{@options[:previous_branch]} (no merges)"
+    str_result = `git log origin/#{@options[:previous_branch]}..origin/develop --format=format:%h --no-merges`
+    str_array = str_result.split "\n"
+    result = []
+    str_array.each do |str_|
+      result.push(str_.to_s.rpartition('/').last)
+    end
+    result
+  end
+
+  def get_prs_for_release
+    results = get_commit_shas_for_release
+    if results.count.positive?
+      return @github_utilities.get_prs_for_release(@token, results.last)
+    else
+      @logger.warn 'No commits found in git log'
+      exit
+    end
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Utilites for using the github api
 require 'net/http'
 require 'json'
@@ -69,7 +71,6 @@ class GitHubUtils
       system("git checkout #{current_branch} > /dev/null 2>&1")
       @logger.error "SCRIPT_LOGGER::
       ================ The pull request was rejected by github. ================
-
       Please see log above for an indication of the error. The #{current_branch}
       branch has been checked out."
       exit
@@ -110,5 +111,56 @@ class GitHubUtils
     uri = URI("https://api.github.com/?access_token=#{oauth_token}")
     res = Net::HTTP.get_response(uri)
     res.code == '200'
+  end
+
+  def get_open_pull_requests(oauth_token)
+    JSON.parse(build_http_request('/pulls', 'GET', nil, oauth_token).body).each do |i|
+      @logger.info i['title']
+    end
+  end
+
+  def get_closed_pull_requests(oauth_token)
+    JSON.parse(build_http_request('/pulls?state=closed?per_page=1', 'GET', nil, oauth_token).body).each do |i|
+      @logger.info i
+    end
+  end
+
+  def get_single_pull_request(oauth_token, pr_number)
+    result = JSON.parse(build_http_request("/pulls/#{pr_number}", 'GET', nil, oauth_token).body)
+    @logger.info result
+  end
+
+  def get_releases(oauth_token)
+    JSON.parse(build_http_request('/releases', 'GET', nil, oauth_token).body).each do |i|
+      @logger.info i['tag_name']
+    end
+  end
+
+  def get_single_commit(oauth_token, sha)
+    JSON.parse(build_http_request("/commits/#{sha}", 'GET', nil, oauth_token).body)
+  end
+
+  def get_prs_for_release(oauth_token, sha)
+    result = get_single_commit(oauth_token, sha)
+    oldest_commit_date = result['commit']['author']['date']
+    oldest_commit_sha = result['sha']
+    @logger.info "Oldest commit sha: #{oldest_commit_sha}"
+    @logger.info "Oldest commit sha date: #{oldest_commit_date}"
+    @logger.info 'Searching GitHub for PRs that have been merged on or after the oldest commit sha, with a base branch of develop'
+    prs = []
+    i = 1
+    max = 5
+    while i <= max  do
+        @logger.info "Searching 100 PRs on page #{i} of #{max}"
+       JSON.parse(build_http_request("/pulls?state=closed&per_page=100&sort=updated&direction=desc&page=#{i}", 'GET', nil, oauth_token).body).each do |d|
+         next if (d['merged_at']).nil?
+         base_branch = d['base']['ref']
+         if Date.parse(d['merged_at']) >= Date.parse(oldest_commit_date) && base_branch == 'develop'
+           prs.push((d['number']).to_s + ' : ' + d['title'] + ' - (Merged @ ' + d['merged_at']+ ')') 
+         end
+       end
+       i += 1
+    end
+    prs
   end
 end

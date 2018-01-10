@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'mail'
 
 require_relative 'token_utils'
@@ -11,20 +13,27 @@ def send_email(logger, opts = {})
   opts[:password]             ||= token_utilities.find('merge_script_email_password')
   opts[:authentication]       ||= 'plain'
   opts[:enable_starttls_auto] ||= true
-  opts[:email_to]             ||= 'lelmore@shopkeep.com'
+  opts[:email_to]             ||= token_utilities.find('merge_script_email_address')
   opts[:email_from]           ||= 'cornerstone@shopkeep.com'
   opts[:email_from_alias]     ||= 'Cornerstone'
-  opts[:email_subject]        ||= 'Testing ruby subject'
-  opts[:email_body]           ||= 'Ruby it'
+  opts[:email_subject]        ||= ''
+  opts[:email_body]           ||= ''
 
   Mail.defaults do
     delivery_method :smtp, opts
   end
 
-  Mail.deliver do
+  mail = Mail.deliver do
+    charset = 'UTF-8'
     to opts[:email_to]
     from opts[:email_from_alias] + '<' + opts[:email_from] + '>'
     subject opts[:email_subject]
-    body opts[:email_body]
+
+    text_part do
+      content_type 'text/html; charset=utf-8'
+      body opts[:email_body]
+    end
   end
+
+  mail.deliver!
 end

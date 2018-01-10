@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Utitilies for using a ruby script to change the files in the project.
 class CodeUtils
   def initialize(log)

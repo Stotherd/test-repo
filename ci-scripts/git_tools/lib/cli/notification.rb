@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'email'
 
 class Notification
@@ -11,8 +13,15 @@ class Notification
     @git_utilities.release_branch_name(@options[:version])
   end
 
-  def email_branch_creation
-    @logger.info 'Sending email: Branch creation and release preparation'
-    send_email @logger, email_subject: "New branch created: #{release_branch}", email_body: "Branch #{release_branch} has been created and we are preparing for a release."
+  def email_branch_creation(prs_for_release)
+    html_prs = []
+    prs_for_release.each do |i|
+      html_prs.push("<a href='https://github.com/shopkeep/ipad-register/pull/" + i.split(' ').first + "'>" + i + '</a>')
+    end
+
+    email_subject = "New branch created: #{release_branch}"
+    email_body = "Branch #{release_branch} has been created and we are preparing for a release. <br /> <br />" + html_prs.join('<br />')
+    send_email @logger, email_subject: email_subject, email_body: email_body
+    @logger.info 'Email sent with Subject: ' + email_subject
   end
 end

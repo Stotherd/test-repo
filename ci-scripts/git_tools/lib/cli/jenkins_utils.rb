@@ -1,26 +1,28 @@
+# frozen_string_literal: true
+
 require 'net/http'
 require 'nokogiri'
 
 class JenkinsUtils
-
   def update_build_branch(jenkins_job, branch, oauth_token, parameter_name)
     config_xml = build_http_request(jenkins_job, 'config.xml', 'GET', nil, oauth_token).body
+    return unless config_xml.include? 'StringParameterDefinition'
+    new_config_xml = change_branch_in_config_file(config_xml, branch, parameter_name)
     build_http_request(jenkins_job, 'config.xml', 'POST', new_config_xml, oauth_token).body
   end
 
   def change_branch_in_config_file(config_xml, branch_name, parameter_name)
     doc = Nokogiri::XML(config_xml)
-    #project = doc.at_css 'project'
+    # project = doc.at_css 'project'
     properties = doc.at_css 'properties'
     parameters = properties.at_css 'parameterDefinitions'
     doc.xpath('//hudson.model.StringParameterDefinition').each do |parameter_element|
-      puts parameter_element.xpath('name')
       if parameter_element.xpath('name').text.include? parameter_name
         file = parameter_element.at_css 'defaultValue'
         file.content = branch_name
       end
     end
-    #branch.content = branch_name
+    # branch.content = branch_name
     doc.to_xml
   end
 

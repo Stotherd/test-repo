@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ForwardMerge
   def initialize(logger, git_utilities, options)
     @logger = logger

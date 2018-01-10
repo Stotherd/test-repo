@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Class for manipulating tokens on the keychain
 class TokenUtils
   def initialize(log)
