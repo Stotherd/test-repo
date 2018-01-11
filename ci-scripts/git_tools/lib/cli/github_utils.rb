@@ -25,6 +25,9 @@ class GitHubUtils
     if type == 'POST'
       req = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
       req.body = body
+    elsif type == 'PUT'
+        req = Net::HTTP::Put.new(uri, 'Content-Type' => 'application/json')
+        req.body = body
     elsif type == 'GET'
       req = Net::HTTP::Get.new(uri)
     end
@@ -93,7 +96,20 @@ class GitHubUtils
     body.include? 'state":"open'
   end
 
+  def setup_status_checks(branch_name, oauth_token)
+    status_checks = {   strict: false,
+                        contexts: ["Appium","KIF"] }
+    required_pr_reviews = {   dismiss_stale_reviews: true,
+                              require_code_owner_reviews: false }
+    json_for_protection = { required_status_checks: status_checks,
+                            enforce_admins: false,
+                            required_pull_request_reviews: required_pr_reviews,
+                            restrictions: nil }
+    build_http_request("/branches/#{release_branch}/protection", 'PUT', json_for_protection.to_json, oauth_token)
+  end
+
   def release_version_pull_request(version_branch, release_branch, oauth_token)
+    setup_status_checks(release_branch, oauth_token)
     title = "Bumping version number for #{release_branch}"
     body_text = "Automated pull request to bump the version number for #{release_branch}"
     res = build_http_request('/pulls', 'POST', { title: title,
