@@ -35,15 +35,15 @@ class CutRelease
     @git_utilities.add_file_to_commit('../../Register/Register.xcodeproj/project.pbxproj')
     @git_utilities.commit_changes("Updating version number to #{@options[:version]}")
     @git_utilities.push_to_origin(version_branch)
+    jenkins_utils = JenkinsUtils.new
+    jenkin_utils.update_pr_tester_for_new_release(release_branch, @token)
     @github_utilities.release_version_pull_request(version_branch, release_branch, @token)
     dashboard_utils = DashboardUtils.new(@logger)
     dashboard_utils.dashboard_cut_new_release(@options[:version], release_branch)
     notification = Notification.new(@logger, @git_utilities, @options)
     notification.email_branch_creation(get_prs_for_release)
-    jenkins_utils = JenkinsUtils.new
     jenkins_utils.update_build_branch('main_regression_multijob_branch', release_branch, @token, 'REGISTER_BRANCH')
     jenkins_utils.update_build_branch('Register-Beta-iTunes-Builder', release_branch, @token, 'BRANCH_TO_BUILD')
-    # do Jira stuff (TBD)
     @logger.info 'complete, exiting'
   end
 
