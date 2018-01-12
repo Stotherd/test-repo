@@ -13,7 +13,6 @@ class JenkinsUtils
 
   def change_branch_in_config_file(config_xml, branch_name, parameter_name)
     doc = Nokogiri::XML(config_xml)
-    # project = doc.at_css 'project'
     properties = doc.at_css 'properties'
     parameters = properties.at_css 'parameterDefinitions'
     doc.xpath('//hudson.model.StringParameterDefinition').each do |parameter_element|
@@ -22,8 +21,26 @@ class JenkinsUtils
         file.content = branch_name
       end
     end
-    # branch.content = branch_name
     doc.to_xml
+  end
+
+  def add_whitelist_in_config_file(config_xml, branch)
+    doc = Nokogiri::XML(config_xml)
+    properties = doc.at_css 'triggers'
+    parameters = properties.at_css 'whiteListTargetBranches'
+    new_container_node = Nokogiri::XML::Node.new "org.jenkinsci.plugins.ghprb.GhprbBranch", doc
+    new_branch_node = Nokogiri::XML::Node.new "branch", doc
+    new_branch_node.content = branch
+    new_container_node.add_child(new_branch_node)
+    parameters.add_child(new_container_node)
+    doc.to_xml
+  end
+
+  def update_pr_tester_for_new_release(branch, oauth_token)
+    config_xml = build_http_request('pull-request-tester', 'config.xml', 'GET', nil, oauth_token).body
+    return unless config_xml.include? 'whiteListTargetBranches'
+    new_config_xml = add_whitelist_in_config_file(config_xml, branch)
+    build_http_request('pull-request-tester', 'config.xml', 'POST', new_config_xml, oauth_token).body
   end
 
   def build_http_request(jenkins_job, uri_tail, type, body, oauth_token)
