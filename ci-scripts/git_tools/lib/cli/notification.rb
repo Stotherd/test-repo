@@ -14,7 +14,6 @@ class Notification
   end
 
   def email_branch_creation(prs_for_release)
-    puts "iuh"
     html_prs = []
     prs_for_release.each do |i|
       html_prs.push("<a href='https://github.com/shopkeep/ipad-register/pull/" + i.split(' ').first + "'>" + i + '</a>')
@@ -22,7 +21,6 @@ class Notification
 
     email_subject = "New branch created: #{release_branch}"
     email_body = "Branch #{release_branch} has been created and we are preparing for a release. <br /> <br />" + html_prs.join('<br />')
-    puts email_subject
     if @options[:test_mode]
       @logger.info "TEST MODE EMAIL CALL:: Subject: #{email_subject}, Text: #{email_body}"
       return

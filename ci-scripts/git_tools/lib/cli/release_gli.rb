@@ -49,10 +49,10 @@ module Gitkeep
         git_utilities = GitUtils.new(logger)
         release_cutter = CutRelease.new(logger, git_utilities, options)
         notification = Notification.new(logger, git_utilities, options)
-        notification.email_branch_creation(release_cutter.get_prs_for_release)
+        notification.email_branch_creation(release_cutter.prs_for_release)
       end
     end
-    command :get_open_prs do |c|
+    command :open_prs do |c|
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info 'Get open PRs'
@@ -61,7 +61,7 @@ module Gitkeep
         release_cutter.open_pull_requests
       end
     end
-    command :get_closed_prs do |c|
+    command :closed_prs do |c|
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info 'Get closed PRs'
@@ -70,7 +70,7 @@ module Gitkeep
         release_cutter.closed_pull_requests
       end
     end
-    command :get_pr do |c|
+    command :pr do |c|
       c.desc 'The PR number'
       c.flag %i[n pr_number], type: String
 
@@ -82,7 +82,7 @@ module Gitkeep
         release_cutter.single_pull_request
       end
     end
-    command :get_releases do |c|
+    command :releases do |c|
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info 'Get Releases'
@@ -91,7 +91,7 @@ module Gitkeep
         release_cutter.releases
       end
     end
-    command :get_commits_for_release do |c|
+    command :commits_for_release do |c|
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info 'Get commits for release'
@@ -100,7 +100,7 @@ module Gitkeep
         puts release_cutter.commits_for_release
       end
     end
-    command :get_prs_for_release do |c|
+    command :prs_for_release do |c|
       c.desc 'The previous release branch name'
       c.flag %i[p previous_branch], type: String
 
@@ -109,10 +109,10 @@ module Gitkeep
         logger.info 'Get PRs for release'
         git_utilities = GitUtils.new(logger)
         release_cutter = CutRelease.new(logger, git_utilities, options)
-        puts release_cutter.get_prs_for_release
+        puts release_cutter.prs_for_release
       end
     end
-    command :get_single_commit do |c|
+    command :single_commit do |c|
       c.desc 'The commit sha'
       c.flag %i[s sha], type: String
 
@@ -122,18 +122,6 @@ module Gitkeep
         git_utilities = GitUtils.new(logger)
         release_cutter = CutRelease.new(logger, git_utilities, options)
         release_cutter.single_commit
-      end
-    end
-    command :modify_jenkins do |c|
-      c.desc 'branch'
-      c.flag %i[b branch], type: String
-      c.action do |_global_option, options, _args|
-        logger = Logger.new(STDOUT)
-        logger.info 'Get commit'
-        jenkins_utils = JenkinsUtils.new
-        token_utilities = TokenUtils.new(logger)
-        oauth_token = token_utilities.find('merge_script')
-        jenkins_utils.update_pr_tester_for_new_release(options[:branch], oauth_token)
       end
     end
   end

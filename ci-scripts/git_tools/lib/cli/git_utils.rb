@@ -12,9 +12,7 @@ class GitUtils
   end
 
   def system_command(command, writable)
-    puts "here"
     if @test_mode && writable
-      puts "there"
       @logger.info "TEST_MODE SYSTEM CALL:: #{command}"
       return true
     end
@@ -58,7 +56,7 @@ class GitUtils
 
   def obtain_latest
     if @test_mode
-      @logger.info "TEST_MODE GIT CALL:: git.fetch"
+      @logger.info 'TEST_MODE GIT CALL:: git.fetch'
       @logger.info "TEST_MODE GIT CALL:: @git.pull(#{@git.remote}, #{@git.current_branch})"
     else
       @git.fetch
@@ -76,10 +74,9 @@ class GitUtils
 
   def new_branch(branch_name)
     @logger.info "branch creating: #{branch_name}"
-    if !@test_mode
-      @git.branch(branch_name)
-      @git.branch(branch_name).checkout
-    end
+    return if @test_mode
+    @git.branch(branch_name)
+    @git.branch(branch_name).checkout
   end
 
   def add_file_to_commit(filename)
@@ -94,20 +91,17 @@ class GitUtils
     if @test_mode
       @logger.info "TEST_MODE GIT CALL::  @git.commit(#{message}))"
     else
-       @git.commit(message)
+      @git.commit(message)
     end
   end
 
   def push_to_origin(branch_name)
-
     if @test_mode
       @logger.info "TEST_MODE GIT CALL::  @git.push(#{@git.remote}, #{branch_name}))"
     else
-       @git.push(@git.remote, branch_name)
+      @git.push(@git.remote, branch_name)
     end
-
   end
-
 
   def forward_branch_name(base_branch, merge_branch)
     "forward-merge-#{merge_branch}-to-#{base_branch}"
@@ -134,7 +128,6 @@ class GitUtils
     false
   end
 
-
   def safe_merge(base_branch, to_be_merged_in_branch)
     unless system_command("git merge origin/#{to_be_merged_in_branch} --no-edit", true)
       @logger.info "SCRIPT_LOGGER:: unable to merge - CTRL-C to exit or press
@@ -153,7 +146,7 @@ class GitUtils
     system_command("git merge origin/#{to_be_merged_in_branch} --no-edit", true)
   end
 
-  def get_user_input_to_continue(warning)
+  def user_input_to_continue(warning)
     complete = false
     until complete
       @logger.info warning

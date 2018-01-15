@@ -4,7 +4,6 @@ require 'net/http'
 require 'nokogiri'
 
 class JenkinsUtils
-
   def initialize(logger, test_mode)
     @logger = logger
     @test_mode = test_mode
@@ -16,8 +15,8 @@ class JenkinsUtils
     return unless config_xml.include? 'StringParameterDefinition'
     @logger.info "SCRIPT_LOGGER :: Updating to include #{branch} as build target"
     new_config_xml = change_branch_in_config_file(config_xml, branch, parameter_name)
-    @logger.info "SCRIPT_LOGGER :: Pushing to jenkins"
-    return unless !@test_mode
+    @logger.info 'SCRIPT_LOGGER :: Pushing to jenkins'
+    return if @test_mode
     build_http_request(jenkins_job, 'config.xml', 'POST', new_config_xml, oauth_token)
   end
 
@@ -38,8 +37,8 @@ class JenkinsUtils
     doc = Nokogiri::XML(config_xml)
     properties = doc.at_css 'triggers'
     parameters = properties.at_css 'whiteListTargetBranches'
-    new_container_node = Nokogiri::XML::Node.new "org.jenkinsci.plugins.ghprb.GhprbBranch", doc
-    new_branch_node = Nokogiri::XML::Node.new "branch", doc
+    new_container_node = Nokogiri::XML::Node.new 'org.jenkinsci.plugins.ghprb.GhprbBranch', doc
+    new_branch_node = Nokogiri::XML::Node.new 'branch', doc
     new_branch_node.content = branch
     new_container_node.add_child(new_branch_node)
     parameters.add_child(new_container_node)
@@ -47,13 +46,13 @@ class JenkinsUtils
   end
 
   def update_pr_tester_for_new_release(branch, oauth_token)
-    @logger.info "SCRIPT_LOGGER :: getting current jenkins pull-request-tester config"
+    @logger.info 'SCRIPT_LOGGER :: getting current jenkins pull-request-tester config'
     config_xml = build_http_request('pull-request-tester', 'config.xml', 'GET', nil, oauth_token).body
     return unless config_xml.include? 'whiteListTargetBranches'
     @logger.info "SCRIPT_LOGGER :: Updating to include #{branch} as whitelisted target branch"
     new_config_xml = add_whitelist_in_config_file(config_xml, branch)
-    @logger.info "SCRIPT_LOGGER :: Pushing to jenkins"
-    return unless !@test_mode
+    @logger.info 'SCRIPT_LOGGER :: Pushing to jenkins'
+    return if @test_mode
     build_http_request('pull-request-tester', 'config.xml', 'POST', new_config_xml, oauth_token)
   end
 

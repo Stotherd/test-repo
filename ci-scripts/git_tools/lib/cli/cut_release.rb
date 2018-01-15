@@ -39,9 +39,7 @@ class CutRelease
   def perform_web_operations
     jenkins_utils = JenkinsUtils.new(@logger, @options[:test_mode])
     jenkins_utils.update_pr_tester_for_new_release(release_branch, @token)
-    puts "got here"
     @github_utilities.release_version_pull_request(version_branch, release_branch, @token)
-    puts "44"
     dashboard_utils = DashboardUtils.new(@logger, @options[:test_mode])
     dashboard_utils.dashboard_cut_new_release(@options[:version], release_branch)
     jenkins_utils.update_build_branch('main_regression_multijob_branch', release_branch, @token, 'REGISTER_BRANCH')
@@ -53,10 +51,8 @@ class CutRelease
     return false unless verify_develop_state
     return false unless initial_git_operations
     perform_web_operations
-    puts "ok"
     notification = Notification.new(@logger, @git_utilities, @options)
-    puts "hammertime"
-    notification.email_branch_creation(get_prs_for_release)
+    notification.email_branch_creation(prs_for_release)
     @logger.info 'complete, exiting'
   end
 
@@ -87,27 +83,26 @@ class CutRelease
   end
 
   def open_pull_requests
-    @github_utilities.get_open_pull_requests(@token)
+    @github_utilities.open_pull_requests(@token)
   end
 
   def closed_pull_requests
-    @github_utilities.get_closed_pull_requests(@token)
+    @github_utilities.closed_pull_requests(@token)
   end
 
   def single_pull_request
-    @github_utilities.get_single_pull_request(@token, @options[:pr_number])
+    @github_utilities.single_pull_request(@token, @options[:pr_number])
   end
 
   def releases
-    @github_utilities.get_releases(@token)
+    @github_utilities.releases(@token)
   end
 
   def single_commit
-    @github_utilities.get_single_commit(@token, @options[:sha])
+    @github_utilities.single_commit(@token, @options[:sha])
   end
 
   def verify_branch?
-    puts "verifying"
     if @git_utilities.remote_branch?(@options[:previous_branch]) == false
       @logger.warn 'Requested previous branch does not exist on remote: ' + @options[:previous_branch]
       @logger.info 'Check your branch name and try again'
@@ -128,8 +123,8 @@ class CutRelease
     result
   end
 
-  def get_commit_shas_for_release
-    return "" unless verify_branch?
+  def commit_shas_for_release
+    return nil unless verify_branch?
     @logger.info "Finding commits that are in origin/develop and not in origin/#{@options[:previous_branch]} (no merges)"
     str_result = `git log origin/#{@options[:previous_branch]}..origin/develop --format=format:%h --no-merges`
     str_array = str_result.split "\n"
@@ -140,15 +135,12 @@ class CutRelease
     result
   end
 
-  def get_prs_for_release
-    puts "nil"
-    results = get_commit_shas_for_release
-    puts "prs"
-    if results.count.positive?
-      return @github_utilities.get_prs_for_release(@token, results.last)
-    else
-      @logger.warn 'No commits found in git log'
-      exit
-    end
+  def branch_cut_date
+    cut_date = `git log -1 --format=%ai cut-#{@options[:previous_branch]}`
+    cut_date.split(' ').first
+  end
+
+  def prs_for_release
+    @github_utilities.prs_for_release(@token, branch_cut_date)
   end
 end

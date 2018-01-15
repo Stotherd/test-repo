@@ -44,7 +44,7 @@ class ForwardMerge
       if @options[:automatic]
         @logger.warn 'SCRIPT_LOGGER:: Possible pull request already in progress.'
       else
-        unless @git_utilities.get_user_input_to_continue("SCRIPT_LOGGER:: Possible matching pull request detected.
+        unless @git_utilities.user_input_to_continue("SCRIPT_LOGGER:: Possible matching pull request detected.
     If the branch name generated matches that of a pull request, and the changes are pushed to origin, that pull request will be updated.
     Check above logs.
     Do you wish to continue? (y/n)")
@@ -86,7 +86,7 @@ class ForwardMerge
   def continue_after_diff?
     return true unless @options[:automatic]
     system("git diff origin/#{@options[:base_branch]} #{forward_branch}")
-    return false unless @git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: The above diff contains the differences between the 2 branches. Do you wish to continue with the merge? (y/n)')
+    return false unless @git_utilities.user_input_to_continue('SCRIPT_LOGGER:: The above diff contains the differences between the 2 branches. Do you wish to continue with the merge? (y/n)')
     true
   end
 
@@ -118,7 +118,7 @@ class ForwardMerge
 
       unless @options[:automatic]
         @git_utilities.system_command("git diff #{@options[:base_branch]} #{@options[:merge_branch]}", true)
-        unless @git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: The above diff contains the differences between the 2 branches. Do you wish to continue? (y/n)')
+        unless @git_utilities.user_input_to_continue('SCRIPT_LOGGER:: The above diff contains the differences between the 2 branches. Do you wish to continue? (y/n)')
           return false
         end
       end
@@ -148,7 +148,7 @@ class ForwardMerge
       @git_utilities.push_to_origin(forward_branch)
       pushed = true
     elsif !@options[:automatic]
-      if @git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: Do you want to push to origin? (Required for pull request)(y/n)')
+      if @git_utilities.user_input_to_continue('SCRIPT_LOGGER:: Do you want to push to origin? (Required for pull request)(y/n)')
         @logger.info "SCRIPT_LOGGER:: Pushing #{forward_branch} to origin"
         @git_utilities.push_to_origin(forward_branch)
         pushed = true
@@ -167,7 +167,7 @@ class ForwardMerge
   def github_automatic_ops
     return if @options[:automatic]
     system("git diff origin/#{forward_branch} #{@options[:base_branch]}")
-    return true unless @git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: Based on the above diff, do you want to create a pull request? (y/n)')
+    return true unless @git_utilities.user_input_to_continue('SCRIPT_LOGGER:: Based on the above diff, do you want to create a pull request? (y/n)')
     @github_utilities.forward_merge_pull_request(forward_branch, @options[:base_branch], @token)
     false
   end
@@ -184,7 +184,7 @@ class ForwardMerge
     end
     force_merge_check
     return false unless github_automatic_ops
-    return false unless @git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: Do you want to finish the merge without a pull request? (y/n)')
+    return false unless @git_utilities.user_input_to_continue('SCRIPT_LOGGER:: Do you want to finish the merge without a pull request? (y/n)')
     @git_utilities.final_clean_merge(@options[:base_branch], forward_branch)
   end
 end

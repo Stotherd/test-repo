@@ -27,8 +27,8 @@ class GitHubUtils
       req = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
       req.body = body
     elsif type == 'PUT'
-        req = Net::HTTP::Put.new(uri, 'Content-Type' => 'application/json')
-        req.body = body
+      req = Net::HTTP::Put.new(uri, 'Content-Type' => 'application/json')
+      req.body = body
     elsif type == 'GET'
       req = Net::HTTP::Get.new(uri)
     end
@@ -146,53 +146,49 @@ class GitHubUtils
     res.code == '200'
   end
 
-  def get_open_pull_requests(oauth_token)
+  def open_pull_requests(oauth_token)
     JSON.parse(build_http_request('/pulls', 'GET', nil, oauth_token).body).each do |i|
       @logger.info i['title']
     end
   end
 
-  def get_closed_pull_requests(oauth_token)
+  def closed_pull_requests(oauth_token)
     JSON.parse(build_http_request('/pulls?state=closed?per_page=1', 'GET', nil, oauth_token).body).each do |i|
       @logger.info i
     end
   end
 
-  def get_single_pull_request(oauth_token, pr_number)
+  def single_pull_request(oauth_token, pr_number)
     result = JSON.parse(build_http_request("/pulls/#{pr_number}", 'GET', nil, oauth_token).body)
     @logger.info result
   end
 
-  def get_releases(oauth_token)
+  def releases(oauth_token)
     JSON.parse(build_http_request('/releases', 'GET', nil, oauth_token).body).each do |i|
       @logger.info i['tag_name']
     end
   end
 
-  def get_single_commit(oauth_token, sha)
+  def single_commit(oauth_token, sha)
     JSON.parse(build_http_request("/commits/#{sha}", 'GET', nil, oauth_token).body)
   end
 
-  def get_prs_for_release(oauth_token, sha)
-    result = get_single_commit(oauth_token, sha)
-    oldest_commit_date = result['commit']['author']['date']
-    oldest_commit_sha = result['sha']
-    @logger.info "Oldest commit sha: #{oldest_commit_sha}"
-    @logger.info "Oldest commit sha date: #{oldest_commit_date}"
-    @logger.info 'Searching GitHub for PRs that have been merged on or after the oldest commit sha, with a base branch of develop'
+  def prs_for_release(oauth_token, cut_date)
+    @logger.info "Searching GitHub for PRs that have been merged on or after #{cut_date}, with a base branch of develop"
+
     prs = []
     i = 1
     max = 5
-    while i <= max  do
-        @logger.info "Searching 100 PRs on page #{i} of #{max}"
-       JSON.parse(build_http_request("/pulls?state=closed&per_page=100&sort=updated&direction=desc&page=#{i}", 'GET', nil, oauth_token).body).each do |d|
-         next if (d['merged_at']).nil?
-         base_branch = d['base']['ref']
-         if Date.parse(d['merged_at']) >= Date.parse(oldest_commit_date) && base_branch == 'develop'
-           prs.push((d['number']).to_s + ' : ' + d['title'] + ' - (Merged @ ' + d['merged_at']+ ')')
-         end
-       end
-       i += 1
+    while i <= max
+      progress = (i.to_f / max.to_f) * 100
+      @logger.info "Searching PRs results: #{progress.to_i}% complete"
+      JSON.parse(build_http_request("/pulls?state=closed&base=develop&per_page=100&page=#{i}", 'GET', nil, oauth_token).body).each do |d|
+        next if (d['merged_at']).nil?
+        if Date.parse(d['merged_at']) >= Date.parse(cut_date)
+          prs.push((d['number']).to_s + ' : ' + d['title'])
+        end
+      end
+      i += 1
     end
     prs
   end
