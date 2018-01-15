@@ -99,14 +99,14 @@ class ForwardMerge
         elsif @options[:push] == true
           @git_utilities.push_to_origin(forward_branch)
         end
-      elsif remote_present && system("git checkout -b #{forward_branch} origin/#{forward_branch} > /dev/null 2>&1") != true
+      elsif remote_present && @git_utilities.system_command("git checkout -b #{forward_branch} origin/#{forward_branch} > /dev/null 2>&1", true) != true
         @logger.error "SCRIPT_LOGGER:: Failed to checkout #{forward_branch} from remote"
         return false
       end
       if @git_utilities.branch_up_to_date?(forward_branch, @options[:base_branch]) != true
         return false unless continue_after_diff?
         @logger.info "SCRIPT_LOGGER:: Updating #{forward_branch} with latest from #{@options[:base_branch]}"
-        @git_utilitie.safe_merge(forward_branch, @options[:base_branch])
+        @git_utilities.safe_merge(forward_branch, @options[:base_branch])
         @git_utilities.push_to_origin(forward_branch) if @options[:push] == true
       end
     else
@@ -131,7 +131,7 @@ class ForwardMerge
         end
       end
       @logger.info "SCRIPT_LOGGER:: Successfully checked out the #{@options[:base_branch]} branch"
-      if system("git checkout -b #{forward_branch}") != true
+      if @git_utilities.system_command("git checkout -b #{forward_branch}", true) != true
         @logger.error 'SCRIPT_LOGGER:: Failed to create new branch.'
         return false
       else
