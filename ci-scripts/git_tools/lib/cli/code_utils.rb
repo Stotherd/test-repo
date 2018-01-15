@@ -2,27 +2,29 @@
 
 # Utitilies for using a ruby script to change the files in the project.
 class CodeUtils
-  def initialize(log)
+  def initialize(log, test_mode)
     @logger = log
+    @test_mode = test_mode
   end
 
   def change_xcode_version(version)
     if change_on_file('../../Register/Register.xcodeproj/project.pbxproj',
                       /CURRENT_PROJECT_VERSION = [1-9]?[1-9]\.[1-9]?[0-9]\.[1-9]?[0-9]/,
                       "CURRENT_PROJECT_VERSION = #{version}")
-
       @logger.info "XCode CURRENT_PROJECT_VERSION changed to #{version}"
       true
-
     else
       @logger.info 'Unable to convert xcode version'
       false
-
     end
   end
 
   def change_on_file(file, regex_to_find, text_to_put_in_place)
     text = File.read file
+    if @test_mode
+      @logger.info "TEST_MODE CODE CALL:: #{text.gsub(regex_to_find, text_to_put_in_place)}"
+      return true
+    end
     File.open(file, 'w+') do |f|
       f << text.gsub(regex_to_find,
                      text_to_put_in_place)

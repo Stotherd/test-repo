@@ -5,7 +5,8 @@ require 'net/http'
 require 'json'
 require 'ostruct'
 class GitHubUtils
-  def initialize(log, repo_id)
+  def initialize(log, repo_id, test_mode)
+    @test_mode = test_mode
     @logger = log
     @repo_id = repo_id
   end
@@ -82,6 +83,10 @@ class GitHubUtils
 
   def forward_merge_pull_request(merge_branch, current_branch, oauth_token)
     text = "Automated pull request of #{merge_branch} into #{current_branch}"
+    if @test_mode
+      @logger.info "TEST MODE GITHUB OPS :: PR POST, text: #{text}"
+      return
+    end
     res = build_http_request('/pulls', 'POST', { title: text,
                                                  body: text,
                                                  head: merge_branch,
@@ -105,13 +110,25 @@ class GitHubUtils
                             enforce_admins: false,
                             required_pull_request_reviews: required_pr_reviews,
                             restrictions: nil }
-    build_http_request("/branches/#{release_branch}/protection", 'PUT', json_for_protection.to_json, oauth_token)
+    puts "112"
+    if @test_mode
+      @logger.info "TEST MODE GITHUB OPS :: STATUS CHECKS PUT, text: #{json_for_protection}"
+      return
+    end
+    puts "117"
+    build_http_request("/branches/#{branch_name}/protection", 'PUT', json_for_protection.to_json, oauth_token)
   end
 
   def release_version_pull_request(version_branch, release_branch, oauth_token)
+    puts "120"
     setup_status_checks(release_branch, oauth_token)
     title = "Bumping version number for #{release_branch}"
     body_text = "Automated pull request to bump the version number for #{release_branch}"
+
+    if @test_mode
+      @logger.info "TEST MODE GITHUB OPS :: Release PR, title: #{title}, text: #{body_text}"
+      return
+    end
     res = build_http_request('/pulls', 'POST', { title: title,
                                                  body: body_text,
                                                  head: version_branch,
@@ -172,7 +189,7 @@ class GitHubUtils
          next if (d['merged_at']).nil?
          base_branch = d['base']['ref']
          if Date.parse(d['merged_at']) >= Date.parse(oldest_commit_date) && base_branch == 'develop'
-           prs.push((d['number']).to_s + ' : ' + d['title'] + ' - (Merged @ ' + d['merged_at']+ ')') 
+           prs.push((d['number']).to_s + ' : ' + d['title'] + ' - (Merged @ ' + d['merged_at']+ ')')
          end
        end
        i += 1

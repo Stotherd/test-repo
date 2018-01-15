@@ -7,27 +7,22 @@ require 'ostruct'
 require 'date'
 
 class DashboardUtils
-  def initialize(log)
+  def initialize(log, test_mode)
+    @test_mode = test_mode
     @logger = log
   end
 
   def dashboard_cut_new_release(version, branch_name)
     return false if release_exists?(version)
     create_release(version, branch_name)
-    # fire request to create a new release (no build yet)
-    # fire request to set state to state N.B should be Alpha for a new release
   end
 
   def change_release_state_to_beta(version, _build)
     return false unless release_exists?(version)
-    # set build with date
-    # set state
   end
 
   def release_release(version, _build)
     return false unless release_exists?(version)
-    # set build with date
-    # set state
   end
 
   def build_http_request(uri_tail, type, body)
@@ -38,8 +33,13 @@ class DashboardUtils
     elsif type == 'GET'
       req = Net::HTTP::Get.new(uri)
     end
-    Net::HTTP.start(uri.hostname, uri.port, use_ssl: false) do |http|
-      http.request(req)
+
+    if @test_mode
+      @logger.info "TEST_MODE DASHBOARD HTTP CALL:: uri: #{uri}, body: #{body}"
+    else
+      Net::HTTP.start(uri.hostname, uri.port, use_ssl: false) do |http|
+        http.request(req)
+      end
     end
   end
 
@@ -59,7 +59,6 @@ class DashboardUtils
              code_complete_date: current_date,
              branch_name: branch_name,
              state: 'alpha' }.to_json
-    res = build_http_request('/releases', 'POST', body)
-    @logger.info res
+    build_http_request('/releases', 'POST', body)
   end
 end

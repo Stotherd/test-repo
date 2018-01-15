@@ -4,21 +4,32 @@ require 'git'
 
 # Git utilities using the ruby gem ruby-git
 class GitUtils
-  def initialize(log)
+  def initialize(log, test_mode)
     @logger = log
     path = `git rev-parse --show-toplevel`
     @git ||= Git.open(path.chomp)
+    @test_mode = test_mode
+  end
+
+  def system_command(command, writable)
+    puts "here"
+    if @test_mode && writable
+      puts "there"
+      @logger.info "TEST_MODE SYSTEM CALL:: #{command}"
+      return true
+    end
+    system(command)
   end
 
   def forward_merge_clean(branch_you_were_on,
                           branch_to_be_deleted,
                           clean_remote)
     @logger.info "SCRIPT_LOGGER:: Checking out #{branch_you_were_on}"
-    system('git merge --abort > /dev/null 2>&1')
-    system("git checkout #{branch_you_were_on}  > /dev/null 2>&1")
-    system("git branch -D #{branch_to_be_deleted}   > /dev/null 2>&1")
+    system_command('git merge --abort > /dev/null 2>&1', true)
+    system_command("git checkout #{branch_you_were_on}  > /dev/null 2>&1", true)
+    system_command("git branch -D #{branch_to_be_deleted}   > /dev/null 2>&1", true)
     if clean_remote == true
-      system("git push origin --delete #{branch_to_be_deleted} > /dev/null 2>&1")
+      system_command("git push origin --delete #{branch_to_be_deleted} > /dev/null 2>&1", true)
     end
     @logger.info "SCRIPT_LOGGER:: Any merge in progress was aborted, and the
     #{branch_to_be_deleted} branch deleted."
@@ -46,27 +57,57 @@ class GitUtils
   end
 
   def obtain_latest
-    @git.fetch
-    @git.pull(@git.remote, @git.current_branch)
+    if @test_mode
+      @logger.info "TEST_MODE GIT CALL:: git.fetch"
+      @logger.info "TEST_MODE GIT CALL:: @git.pull(#{@git.remote}, #{@git.current_branch})"
+    else
+      @git.fetch
+      @git.pull(@git.remote, @git.current_branch)
+    end
   end
 
   def checkout_local_branch(branch_name)
-    @git.checkout(branch_name)
+    if @test_mode
+      @logger.info "TEST_MODE GIT CALL:: git.checkout(#{branch_name})"
+    else
+      @git.checkout(branch_name)
+    end
   end
 
   def new_branch(branch_name)
     @logger.info "branch creating: #{branch_name}"
-    @git.branch(branch_name)
-    @git.branch(branch_name).checkout
+    if !@test_mode
+      @git.branch(branch_name)
+      @git.branch(branch_name).checkout
+    end
   end
 
   def add_file_to_commit(filename)
-    @git.add(filename)
+    if @test_mode
+      @logger.info "TEST_MODE GIT CALL:: @git.add(#{filename}))"
+    else
+      @git.add(filename)
+    end
   end
 
   def commit_changes(message)
-    @git.commit(message)
+    if @test_mode
+      @logger.info "TEST_MODE GIT CALL::  @git.commit(#{message}))"
+    else
+       @git.commit(message)
+    end
   end
+
+  def push_to_origin(branch_name)
+
+    if @test_mode
+      @logger.info "TEST_MODE GIT CALL::  @git.push(#{@git.remote}, #{branch_name}))"
+    else
+       @git.push(@git.remote, branch_name)
+    end
+
+  end
+
 
   def forward_branch_name(base_branch, merge_branch)
     "forward-merge-#{merge_branch}-to-#{base_branch}"
@@ -93,12 +134,9 @@ class GitUtils
     false
   end
 
-  def push_to_origin(branch_name)
-    @git.push(@git.remote, branch_name)
-  end
 
   def safe_merge(base_branch, to_be_merged_in_branch)
-    unless system("git merge origin/#{to_be_merged_in_branch} --no-edit")
+    unless system_command("git merge origin/#{to_be_merged_in_branch} --no-edit", true)
       @logger.info "SCRIPT_LOGGER:: unable to merge - CTRL-C to exit or press
       enter to continue after all conflicts resolved"
       until merge_complete?(to_be_merged_in_branch)
@@ -112,7 +150,7 @@ class GitUtils
   end
 
   def merge_complete?(to_be_merged_in_branch)
-    system("git merge origin/#{to_be_merged_in_branch} --no-edit")
+    system_command("git merge origin/#{to_be_merged_in_branch} --no-edit", true)
   end
 
   def get_user_input_to_continue(warning)
@@ -126,7 +164,7 @@ class GitUtils
   end
 
   def final_clean_merge(base_branch, head_branch)
-    if system("git checkout #{base_branch} > /dev/null 2>&1") != true
+    if system_command("git checkout #{base_branch} > /dev/null 2>&1", true) != true
       logger.error 'SCRIPT_LOGGER:: Failed to checkout branch locally, unable
       to continue'
       exit

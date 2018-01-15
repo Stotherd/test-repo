@@ -89,9 +89,11 @@ module Gitkeep
       c.switch %i[output_local]
       c.desc 'Output remote branch list'
       c.switch %i[output_remote]
+      c.desc 'Test mode'
+      c.switch %i[t test_mode]
       c.action do |_global_options, options, _args|
         logger = Logger.new(STDOUT)
-        git_utilities = GitUtils.new(logger)
+        git_utilities = GitUtils.new(logger, options[:test_mode])
         if options[:complete]
           options.each_key do |key|
             if key.length > 2
@@ -126,9 +128,11 @@ module Gitkeep
       c.switch %i[output_local]
       c.desc 'Output remote branch list'
       c.switch %i[output_remote]
+      c.desc 'Test mode'
+      c.switch %i[t test_mode]
       c.action do |_global_options, options, _args|
         logger = Logger.new(STDOUT)
-        git_utilities = GitUtils.new(logger)
+        git_utilities = GitUtils.new(logger, options[:test_mode])
         if options[:complete]
           options.each_key do |key|
             if key.length > 2
@@ -158,6 +162,8 @@ module Gitkeep
       c.switch %i[c complete]
       c.desc 'The email address to be used in setup'
       c.flag %i[e email_address], type: String
+      c.desc 'Test mode'
+      c.switch %i[t test_mode]
       c.action do |_global_options, options, _args|
         logger = Logger.new(STDOUT)
         token_utilities = TokenUtils.new(logger)

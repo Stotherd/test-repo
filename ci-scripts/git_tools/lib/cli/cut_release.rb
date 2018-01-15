@@ -11,7 +11,7 @@ class CutRelease
     @git_utilities = git_utilities
     token_utilities = TokenUtils.new(logger)
     @token = token_utilities.find('merge_script')
-    @github_utilities = GitHubUtils.new(logger, git_utilities.origin_repo_name)
+    @github_utilities = GitHubUtils.new(logger, git_utilities.origin_repo_name, options[:test_mode])
     @options = options
   end
 
@@ -28,7 +28,7 @@ class CutRelease
     @git_utilities.new_branch(release_branch)
     @git_utilities.push_to_origin(release_branch)
     @git_utilities.new_branch(version_branch)
-    code_utilities = CodeUtils.new(@logger)
+    code_utilities = CodeUtils.new(@logger, @options[:test_mode])
     return false unless code_utilities.change_xcode_version(@options[:version])
     @git_utilities.add_file_to_commit('../../Register/Register.xcodeproj/project.pbxproj')
     @git_utilities.commit_changes("Updating version number to #{@options[:version]}")
@@ -37,10 +37,12 @@ class CutRelease
   end
 
   def perform_web_operations
-    jenkins_utils = JenkinsUtils.new
-    jenkin_utils.update_pr_tester_for_new_release(release_branch, @token)
+    jenkins_utils = JenkinsUtils.new(@logger, @options[:test_mode])
+    jenkins_utils.update_pr_tester_for_new_release(release_branch, @token)
+    puts "got here"
     @github_utilities.release_version_pull_request(version_branch, release_branch, @token)
-    dashboard_utils = DashboardUtils.new(@logger)
+    puts "44"
+    dashboard_utils = DashboardUtils.new(@logger, @options[:test_mode])
     dashboard_utils.dashboard_cut_new_release(@options[:version], release_branch)
     jenkins_utils.update_build_branch('main_regression_multijob_branch', release_branch, @token, 'REGISTER_BRANCH')
     jenkins_utils.update_build_branch('Register-Beta-iTunes-Builder', release_branch, @token, 'BRANCH_TO_BUILD')
@@ -51,7 +53,9 @@ class CutRelease
     return false unless verify_develop_state
     return false unless initial_git_operations
     perform_web_operations
+    puts "ok"
     notification = Notification.new(@logger, @git_utilities, @options)
+    puts "hammertime"
     notification.email_branch_creation(get_prs_for_release)
     @logger.info 'complete, exiting'
   end
@@ -103,6 +107,7 @@ class CutRelease
   end
 
   def verify_branch?
+    puts "verifying"
     if @git_utilities.remote_branch?(@options[:previous_branch]) == false
       @logger.warn 'Requested previous branch does not exist on remote: ' + @options[:previous_branch]
       @logger.info 'Check your branch name and try again'
@@ -124,7 +129,7 @@ class CutRelease
   end
 
   def get_commit_shas_for_release
-    return nil unless verify_branch?
+    return "" unless verify_branch?
     @logger.info "Finding commits that are in origin/develop and not in origin/#{@options[:previous_branch]} (no merges)"
     str_result = `git log origin/#{@options[:previous_branch]}..origin/develop --format=format:%h --no-merges`
     str_array = str_result.split "\n"
@@ -136,7 +141,9 @@ class CutRelease
   end
 
   def get_prs_for_release
+    puts "nil"
     results = get_commit_shas_for_release
+    puts "prs"
     if results.count.positive?
       return @github_utilities.get_prs_for_release(@token, results.last)
     else

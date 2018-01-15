@@ -10,6 +10,7 @@ require_relative 'forward_merge'
 require_relative 'cut_release'
 require_relative 'dashboard_utils'
 require_relative 'notification'
+require_relative 'jenkins_utils'
 
 module Gitkeep
   module CLI
@@ -25,13 +26,14 @@ module Gitkeep
       c.flag %i[s sha], type: String
       c.desc 'The previous release branch name'
       c.flag %i[p previous_branch], type: String
+      c.desc 'Test Mode - does no external operations but logs web requests and git operations instead.'
+      c.switch %i[t test_mode]
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info "Cutting release for #{options[:version]}."
-        git_utilities = GitUtils.new(logger)
+        git_utilities = GitUtils.new(logger, options[:test_mode])
         release_cutter = CutRelease.new(logger, git_utilities, options)
         release_cutter.cut_release
-        # do Jira stuff (TBD)
       end
     end
     command :notify_branch_creation do |c|
@@ -39,7 +41,8 @@ module Gitkeep
       c.flag %i[v version], type: String
       c.desc 'The previous release branch name'
       c.flag %i[p previous_branch], type: String
-
+      c.desc 'Test Mode - does no external operations but logs web requests and git operations instead.'
+      c.switch %i[t test_mode]
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info "Sending branch creation notification: #{options[:version]}"
@@ -119,6 +122,18 @@ module Gitkeep
         git_utilities = GitUtils.new(logger)
         release_cutter = CutRelease.new(logger, git_utilities, options)
         release_cutter.single_commit
+      end
+    end
+    command :modify_jenkins do |c|
+      c.desc 'branch'
+      c.flag %i[b branch], type: String
+      c.action do |_global_option, options, _args|
+        logger = Logger.new(STDOUT)
+        logger.info 'Get commit'
+        jenkins_utils = JenkinsUtils.new
+        token_utilities = TokenUtils.new(logger)
+        oauth_token = token_utilities.find('merge_script')
+        jenkins_utils.update_pr_tester_for_new_release(options[:branch], oauth_token)
       end
     end
   end

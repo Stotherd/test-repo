@@ -6,7 +6,7 @@ class ForwardMerge
     @git_utilities = git_utilities
     token_utilities = TokenUtils.new(logger)
     @token = token_utilities.find('merge_script')
-    @github_utilities = GitHubUtils.new(logger, git_utilities.origin_repo_name)
+    @github_utilities = GitHubUtils.new(logger, git_utilities.origin_repo_name, options[:test_mode])
     @options = options
   end
 
@@ -117,15 +117,15 @@ class ForwardMerge
       end
 
       unless @options[:automatic]
-        system("git diff #{@options[:base_branch]} #{@options[:merge_branch]}")
+        @git_utilities.system_command("git diff #{@options[:base_branch]} #{@options[:merge_branch]}", true)
         unless @git_utilities.get_user_input_to_continue('SCRIPT_LOGGER:: The above diff contains the differences between the 2 branches. Do you wish to continue? (y/n)')
           return false
         end
       end
 
-      if system("git checkout -b #{@options[:base_branch]} origin/#{@options[:base_branch]} > /dev/null 2>&1") != true
+      if @git_utilities.system_command("git checkout -b #{@options[:base_branch]} origin/#{@options[:base_branch]} > /dev/null 2>&1", true) != true
         @logger.warn "SCRIPT_LOGGER:: Failed to checkout #{@options[:base_branch]} from remote, checking if locally available"
-        if system("git checkout #{@options[:base_branch]} > /dev/null 2>&1") != true
+        if @git_utilities.system_command("git checkout #{@options[:base_branch]} > /dev/null 2>&1", true) != true
           @logger.error 'SCRIPT_LOGGER:: Failed to checkout branch locally, unable to continue'
           return false
         end
