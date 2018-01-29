@@ -24,6 +24,8 @@ class CutRelease
   end
 
   def initial_git_operations
+    @logger.info "Cut point tagged"
+    @git_utilities.add_tag("cut-#{@options[:version]}")
     @logger.info "Release branch will be called #{release_branch}"
     @git_utilities.new_branch(release_branch)
     @git_utilities.push_to_origin(release_branch)

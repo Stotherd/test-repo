@@ -175,4 +175,12 @@ class GitUtils
   def log
     @git.log
   end
+
+  def add_tag(tag_name)
+    if @test_mode
+      @logger.info "TEST_MODE GIT CALL:: git.add_tag(#{tag_name})"
+    else
+      @git.add_tag(tag_name)
+    end
+  end
 end

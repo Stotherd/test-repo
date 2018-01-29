@@ -124,5 +124,18 @@ module Gitkeep
         release_cutter.single_commit
       end
     end
+    command :add_tag do |c|
+      c.desc 'The version number to be used'
+      c.flag %i[v version], type: String
+      c.desc 'Test Mode - does no external operations but logs web requests and git operations instead.'
+      c.switch %i[t test_mode]
+
+      c.action do |_global_option, options, _args|
+        logger = Logger.new(STDOUT)
+        logger.info "Adding tag cut-#{options[:version]}"
+        git_utilities = GitUtils.new(logger, options[:test_mode])
+        git_utilities.add_tag("cut-#{options[:version]}")
+      end
+    end
   end
 end
