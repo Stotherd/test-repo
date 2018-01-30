@@ -14,7 +14,9 @@ require_relative 'jenkins_utils'
 
 module Gitkeep
   module CLI
-    help_text = 'Does release stuff'
+    help_text = "Cuts a release by creating and naming a branch, pushing to
+    github, bumping the version number, creating a PR for version number bump,
+    sending notification emails and updating Cornerstone's dashboard"
     desc help_text
 
     desc 'Cut a release branch and perform post release steps'
@@ -135,6 +137,18 @@ module Gitkeep
         logger.info "Adding tag cut-#{options[:version]}"
         git_utilities = GitUtils.new(logger, options[:test_mode])
         git_utilities.add_tag("cut-#{options[:version]}")
+      end
+    end
+    command :dashboard_release do |c|
+      c.desc 'release version'
+      c.flag %i[v version], type: String
+      c.desc 'build number'
+      c.flag %i[b build_number], type: String
+
+      c.action do |_global_option, options, _args|
+        logger = Logger.new(STDOUT)
+        dashboard_utils = DashboardUtils.new(logger, false)
+        dashboard_utils.release_release(options[:version], options[:build_number])
       end
     end
   end
