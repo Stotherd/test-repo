@@ -25,7 +25,7 @@ class ReleaseCutter
   end
 
   def previous_release_branch
-    @git_utilities.release_branch_name("#{@options[:previous_branch]}-version-change")
+    @git_utilities.release_branch_name("#{@options[:previous_branch]}")
   end
 
   def perform_initial_git_operations
