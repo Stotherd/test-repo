@@ -116,16 +116,30 @@ class GitUtils
     tree_of_branch_you_are_on = `git log --pretty=short #{branch_you_are_on}`
 
     if tree_of_branch_you_are_on.include? sha_of_to_be_merged
-      @logger.error "SCRIPT_LOGGER:: Head of #{branch_to_be_checked_against}
-      appears to be present in #{branch_you_are_on}."
+      @logger.error "SCRIPT_LOGGER:: Head of #{branch_to_be_checked_against} appears to be present in #{branch_you_are_on}."
       return true
     end
-
     number_of_commits_scanned = tree_of_branch_you_are_on.scan(/commit/).count
     @logger.info "SCRIPT_LOGGER:: Scanned #{number_of_commits_scanned} commits
-    in #{branch_you_are_on} and none match the head of
-    #{branch_to_be_checked_against} - continuing"
+    in #{branch_you_are_on} and none match the head of #{branch_to_be_checked_against}."
     false
+  end
+
+  def branches_in_sync?(branch_a, branch_b)
+    if remote_branch?(branch_a) == false
+      logger.error "SCRIPT_LOGGER:: Remote branch #{branch_b} does not exist."
+      return false
+    end
+    checkout_local_branch(branch_a)
+    obtain_latest
+    if remote_branch?(branch_b) == false
+      logger.error "SCRIPT_LOGGER:: Remote branch #{branch_b} does not exist."
+      return false
+    end
+    checkout_local_branch(branch_b)
+    obtain_latest
+    checkout_local_branch(branch_a)
+    return branch_up_to_date?(branch_a, branch_b)
   end
 
   def safe_merge(base_branch, to_be_merged_in_branch)

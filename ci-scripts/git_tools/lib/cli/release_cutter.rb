@@ -21,41 +21,31 @@ class ReleaseCutter
   end
 
   def version_branch
-    @git_utilities.release_branch_name("#{@options[:next_version]}-version-change")
-  end
-
-  def develop_branch
-    'develop'
-  end
-
-  def xcode_version_boost
-    @git_utilities.new_branch(version_branch)
-    text_utilities = TextUtils.new(@logger, @options[:test_mode])
-    xcode_version_changer = ChangeXcodeVersion.new
-    return false unless xcode_version_changer.change_xcode_version(text_utilities, @logger, @options[:next_version])
-    @git_utilities.add_file_to_commit(xcode_version_changer.xcode_proj_location)
-    @git_utilities.commit_changes("Updating version number to #{@options[:next_version]}")
-    @git_utilities.push_to_origin(version_branch)
-    return true
+    @git_utilities.release_branch_name("#{@options[:version]}-version-change")
   end
 
   def perform_initial_git_operations
     @logger.info 'Cut point tagged'
-    @git_utilities.new_branch(version_branch)
-    text_utilities = TextUtils.new(@logger, @options[:test_mode])
-    return false unless xcode_version_boost
-    return false unless verify_develop_state
     @git_utilities.add_tag("cut-#{@options[:version]}")
     @logger.info "Release branch will be called #{release_branch}"
     @git_utilities.new_branch(release_branch)
     @git_utilities.push_to_origin(release_branch)
+    return false unless @git_utilities.branches_in_sync?(develop_branch, previous_release_branch)
+    @git_utilities.new_branch(version_branch)
+    text_utilities = TextUtils.new(@logger, @options[:test_mode])
+    xcode_version_changer = ChangeXcodeVersion.new
+    return false unless xcode_version_changer.change_xcode_version(text_utilities, @logger, @options[:version])
+    @git_utilities.add_file_to_commit(xcode_version_changer.xcode_proj_location)
+    @git_utilities.commit_changes("Updating version number to #{@options[:version]}")
+    @git_utilities.push_to_origin(version_branch)
     true
   end
 
   def perform_web_operations
-    @github_utilities.version_change_pull_request(version_branch, develop_branch, @token)
-    jenkins_utils = JenkinsUtils.new(@logger, @options[:test_mode])
-    jenkins_utils.update_jenkins_whitelist_pr_test_branches(release_branch, @token)
+    #jenkins_utils = JenkinsUtils.new(@logger, @options[:test_mode])
+    #jenkins_utils.update_jenkins_whitelist_pr_test_branches(release_branch, @token)
+    @github_utilities.release_version_pull_request(version_branch, release_branch, @token)
+    exit
     dashboard_utils = DashboardUtils.new(@logger, @options[:test_mode])
     dashboard_utils.dashboard_cut_new_release(@options[:version], release_branch)
     jenkins_utils.update_build_branch('main_regression_multijob_branch', release_branch, @token, 'REGISTER_BRANCH')

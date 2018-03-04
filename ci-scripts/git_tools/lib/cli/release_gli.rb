@@ -28,11 +28,8 @@ module Gitkeep
       c.flag %i[s sha], type: String
       c.desc 'The previous release branch name'
       c.flag %i[p previous_branch], type: String
-      c.desc 'The next version number to be used'
-      c.flag %i[n next_version], type: String
       c.desc 'Test Mode - does no external operations but logs web requests and git operations instead.'
       c.switch %i[t test_mode]
-
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info "Cutting release for #{options[:version]}."
@@ -174,17 +171,26 @@ module Gitkeep
       end
     end
 
-    command :xcode_version_boost do |c|
+    command :release_branch_status do |c|
       c.desc 'test mode'
       c.switch %i[t test_mode]
-      c.desc 'The next version number to be used'
-      c.flag %i[n next_version], type: String
+      c.desc 'branch to check (normally develop)'
+      c.flag %i[b base_branch], type: String
+      c.desc 'branch to be compare against develop (normally the release branch)'
+      c.flag %i[o other_branch], type: String
+
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
-        logger.info "Boosting version to #{options[:next_version]}."
+        logger.info "Checking #{options[:base_branch]} against #{options[:other_branch]}"
         git_utilities = GitUtils.new(logger, options[:test_mode])
-        release_cutter = ReleaseCutter.new(logger, git_utilities, options)
-        release_cutter.xcode_version_boost
+        if git_utilities.branches_in_sync?(options[:base_branch], options[:other_branch])
+          logger.info "Branch #{options[:other_branch]} appears to be merged with #{options[:base_branch]}"
+        else
+          logger.info "Branch #{options[:other_branch]} has not been merged with #{options[:base_branch]}"
+        end
+
+
       end
+    end
   end
 end
