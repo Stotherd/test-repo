@@ -4,5 +4,5 @@ source 'https://rubygems.org'
 
 gem 'git'
 gem 'gli', '2.15.0'
-gem 'nokogiri'
 gem 'mail'
+gem 'nokogiri'

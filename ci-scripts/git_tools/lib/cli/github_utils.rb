@@ -103,27 +103,24 @@ class GitHubUtils
 
   def setup_status_checks(branch_name, oauth_token)
     status_checks = {   strict: false,
-                        contexts: ["Appium","KIF"] }
+                        contexts: %w[Appium KIF] }
     required_pr_reviews = {   dismiss_stale_reviews: true,
                               require_code_owner_reviews: false }
     json_for_protection = { required_status_checks: status_checks,
                             enforce_admins: false,
                             required_pull_request_reviews: required_pr_reviews,
                             restrictions: nil }
-    puts "112"
     if @test_mode
       @logger.info "TEST MODE GITHUB OPS :: STATUS CHECKS PUT, text: #{json_for_protection}"
       return
     end
-    puts "117"
     build_http_request("/branches/#{branch_name}/protection", 'PUT', json_for_protection.to_json, oauth_token)
   end
 
-  def release_version_pull_request(version_branch, release_branch, oauth_token)
-    puts "120"
-    setup_status_checks(release_branch, oauth_token)
-    title = "Bumping version number for #{release_branch}"
-    body_text = "Automated pull request to bump the version number for #{release_branch}"
+  def version_change_pull_request(version_branch, develop_branch, oauth_token)
+    setup_status_checks(develop_branch, oauth_token)
+    title = "Bumping version number for #{develop_branch}"
+    body_text = "Automated pull request to bump the version number for #{develop_branch} for the next release"
 
     if @test_mode
       @logger.info "TEST MODE GITHUB OPS :: Release PR, title: #{title}, text: #{body_text}"
@@ -132,7 +129,7 @@ class GitHubUtils
     res = build_http_request('/pulls', 'POST', { title: title,
                                                  body: body_text,
                                                  head: version_branch,
-                                                 base: release_branch }.to_json, oauth_token)
+                                                 base: develop_branch }.to_json, oauth_token)
     verify_pull_request_opened?(res.body, title, version_branch)
   end
 
@@ -175,20 +172,14 @@ class GitHubUtils
 
   def prs_for_release(oauth_token, cut_date)
     @logger.info "Searching GitHub for PRs that have been merged on or after #{cut_date}, with a base branch of develop"
-
     prs = []
-    i = 1
-    max = 5
-    while i <= max
-      progress = (i.to_f / max.to_f) * 100
-      @logger.info "Searching PRs results: #{progress.to_i}% complete"
+    for i in 1..5 do
       JSON.parse(build_http_request("/pulls?state=closed&base=develop&per_page=100&page=#{i}", 'GET', nil, oauth_token).body).each do |d|
         next if (d['merged_at']).nil?
         if Date.parse(d['merged_at']) >= Date.parse(cut_date)
           prs.push((d['number']).to_s + ' : ' + d['title'])
         end
       end
-      i += 1
     end
     prs
   end

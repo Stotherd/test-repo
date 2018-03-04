@@ -27,7 +27,7 @@ class DashboardUtils
     change_release_state(version, 'store')
     body = { kind: 'store',
              build: "#{version}.#{build_number}",
-             released_at: current_date_slashes}.to_json
+             released_at: current_date('/') }.to_json
     build_http_request("/releases/#{version}/builds", 'POST', body)
   end
 
@@ -60,7 +60,7 @@ class DashboardUtils
 
   def current_date(separator)
     date = Time.new
-    date.year.to_s + separator + date.month.to_s + separator + date.day.to_s
+    "#{date.year}#{separator}#{date.month}#{separator}#{date.day}"
   end
 
   def create_release(version_name, branch_name)

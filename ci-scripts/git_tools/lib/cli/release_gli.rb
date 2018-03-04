@@ -7,7 +7,7 @@ require_relative 'git_utils'
 require_relative 'token_utils'
 require_relative 'github_utils'
 require_relative 'forward_merge'
-require_relative 'cut_release'
+require_relative 'release_cutter'
 require_relative 'dashboard_utils'
 require_relative 'notification'
 require_relative 'jenkins_utils'
@@ -28,13 +28,16 @@ module Gitkeep
       c.flag %i[s sha], type: String
       c.desc 'The previous release branch name'
       c.flag %i[p previous_branch], type: String
+      c.desc 'The next version number to be used'
+      c.flag %i[n next_version], type: String
       c.desc 'Test Mode - does no external operations but logs web requests and git operations instead.'
       c.switch %i[t test_mode]
+
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info "Cutting release for #{options[:version]}."
         git_utilities = GitUtils.new(logger, options[:test_mode])
-        release_cutter = CutRelease.new(logger, git_utilities, options)
+        release_cutter = ReleaseCutter.new(logger, git_utilities, options)
         release_cutter.cut_release
       end
     end
@@ -48,8 +51,8 @@ module Gitkeep
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info "Sending branch creation notification: #{options[:version]}"
-        git_utilities = GitUtils.new(logger)
-        release_cutter = CutRelease.new(logger, git_utilities, options)
+        git_utilities = GitUtils.new(logger, options[:test_mode])
+        release_cutter = ReleaseCutter.new(logger, git_utilities, options)
         notification = Notification.new(logger, git_utilities, options)
         notification.email_branch_creation(release_cutter.prs_for_release)
       end
@@ -58,8 +61,8 @@ module Gitkeep
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info 'Get open PRs'
-        git_utilities = GitUtils.new(logger)
-        release_cutter = CutRelease.new(logger, git_utilities, options)
+        git_utilities = GitUtils.new(logger, options[:test_mode])
+        release_cutter = ReleaseCutter.new(logger, git_utilities, options)
         release_cutter.open_pull_requests
       end
     end
@@ -67,8 +70,8 @@ module Gitkeep
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info 'Get closed PRs'
-        git_utilities = GitUtils.new(logger)
-        release_cutter = CutRelease.new(logger, git_utilities, options)
+        git_utilities = GitUtils.new(logger, options[:test_mode])
+        release_cutter = ReleaseCutter.new(logger, git_utilities, options)
         release_cutter.closed_pull_requests
       end
     end
@@ -79,8 +82,8 @@ module Gitkeep
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info 'Get PR'
-        git_utilities = GitUtils.new(logger)
-        release_cutter = CutRelease.new(logger, git_utilities, options)
+        git_utilities = GitUtils.new(logger, options[:test_mode])
+        release_cutter = ReleaseCutter.new(logger, git_utilities, options)
         release_cutter.single_pull_request
       end
     end
@@ -88,8 +91,8 @@ module Gitkeep
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info 'Get Releases'
-        git_utilities = GitUtils.new(logger)
-        release_cutter = CutRelease.new(logger, git_utilities, options)
+        git_utilities = GitUtils.new(logger, options[:test_mode])
+        release_cutter = ReleaseCutter.new(logger, git_utilities, options)
         release_cutter.releases
       end
     end
@@ -97,8 +100,8 @@ module Gitkeep
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info 'Get commits for release'
-        git_utilities = GitUtils.new(logger)
-        release_cutter = CutRelease.new(logger, git_utilities, options)
+        git_utilities = GitUtils.new(logger, options[:test_mode])
+        release_cutter = ReleaseCutter.new(logger, git_utilities, options)
         puts release_cutter.commits_for_release
       end
     end
@@ -109,8 +112,8 @@ module Gitkeep
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info 'Get PRs for release'
-        git_utilities = GitUtils.new(logger)
-        release_cutter = CutRelease.new(logger, git_utilities, options)
+        git_utilities = GitUtils.new(logger, options[:test_mode])
+        release_cutter = ReleaseCutter.new(logger, git_utilities, options)
         puts release_cutter.prs_for_release
       end
     end
@@ -121,8 +124,8 @@ module Gitkeep
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info 'Get commit'
-        git_utilities = GitUtils.new(logger)
-        release_cutter = CutRelease.new(logger, git_utilities, options)
+        git_utilities = GitUtils.new(logger, options[:test_mode])
+        release_cutter = ReleaseCutter.new(logger, git_utilities, options)
         release_cutter.single_commit
       end
     end
@@ -151,5 +154,37 @@ module Gitkeep
         dashboard_utils.release_release(options[:version], options[:build_number])
       end
     end
+
+    command :enable_pr_testing do |c|
+      c.desc 'test mode'
+      c.switch %i[t test_mode]
+      c.desc 'branch to add PR testing to'
+      c.flag %i[b branch_name], type: String
+
+      c.action do |_global_option, options, _args|
+        logger = Logger.new(STDOUT)
+        logger.info "Adding pr testing to #{options[:branch_name]}"
+        jenkins_utils = JenkinsUtils.new(logger, options[:test_mode])
+        token_utilities = TokenUtils.new(logger)
+        token = token_utilities.find('merge_script')
+        jenkins_utils.update_jenkins_whitelist_pr_test_branches(options[:branch_name], token)
+        git_utilities = GitUtils.new(logger, options[:test_mode])
+        github_utilities = GitHubUtils.new(logger, git_utilities.origin_repo_name, options[:test_mode])
+        github_utilities.setup_status_checks(options[:branch_name], token)
+      end
+    end
+
+    command :xcode_version_boost do |c|
+      c.desc 'test mode'
+      c.switch %i[t test_mode]
+      c.desc 'The next version number to be used'
+      c.flag %i[n next_version], type: String
+      c.action do |_global_option, options, _args|
+        logger = Logger.new(STDOUT)
+        logger.info "Boosting version to #{options[:next_version]}."
+        git_utilities = GitUtils.new(logger, options[:test_mode])
+        release_cutter = ReleaseCutter.new(logger, git_utilities, options)
+        release_cutter.xcode_version_boost
+      end
   end
 end

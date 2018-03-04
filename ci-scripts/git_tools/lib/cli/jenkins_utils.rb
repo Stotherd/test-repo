@@ -45,15 +45,20 @@ class JenkinsUtils
     doc.to_xml
   end
 
-  def update_pr_tester_for_new_release(branch, oauth_token)
-    @logger.info 'SCRIPT_LOGGER :: getting current jenkins pull-request-tester config'
-    config_xml = build_http_request('pull-request-tester', 'config.xml', 'GET', nil, oauth_token).body
+  def update_jenkins_whitelist_branch(branch, oauth_token, jenkins_job)
+    @logger.info "SCRIPT_LOGGER :: getting current jenkins #{jenkins_job} config"
+    config_xml = build_http_request(jenkins_job, 'config.xml', 'GET', nil, oauth_token).body
     return unless config_xml.include? 'whiteListTargetBranches'
     @logger.info "SCRIPT_LOGGER :: Updating to include #{branch} as whitelisted target branch"
     new_config_xml = add_whitelist_in_config_file(config_xml, branch)
     @logger.info 'SCRIPT_LOGGER :: Pushing to jenkins'
     return if @test_mode
-    build_http_request('pull-request-tester', 'config.xml', 'POST', new_config_xml, oauth_token)
+    build_http_request(jenkins_job, 'config.xml', 'POST', new_config_xml, oauth_token)
+  end
+
+  def update_jenkins_whitelist_pr_test_branches(branch, oauth_token)
+    update_jenkins_whitelist_branch(branch, oauth_token, 'pull-request-tester')
+    update_jenkins_whitelist_branch(branch, oauth_token, 'Appium-PR-Tester')
   end
 
   def build_http_request(jenkins_job, uri_tail, type, body, oauth_token)

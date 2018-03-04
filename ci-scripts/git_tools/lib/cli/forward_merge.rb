@@ -85,7 +85,7 @@ class ForwardMerge
 
   def continue_after_diff?
     return true unless @options[:automatic]
-    system("git diff origin/#{@options[:base_branch]} #{forward_branch}")
+    @git_utilities.system_command("git diff origin/#{@options[:base_branch]} #{forward_branch}", false)
     return false unless @git_utilities.user_input_to_continue('SCRIPT_LOGGER:: The above diff contains the differences between the 2 branches. Do you wish to continue with the merge? (y/n)')
     true
   end
@@ -166,7 +166,7 @@ class ForwardMerge
 
   def github_automatic_ops
     return if @options[:automatic]
-    system("git diff origin/#{forward_branch} #{@options[:base_branch]}")
+    @git_utilities.system_command("git diff #{@options[:base_branch]} origin/#{forward_branch}", false)
     return true unless @git_utilities.user_input_to_continue('SCRIPT_LOGGER:: Based on the above diff, do you want to create a pull request? (y/n)')
     @github_utilities.forward_merge_pull_request(forward_branch, @options[:base_branch], @token)
     false
