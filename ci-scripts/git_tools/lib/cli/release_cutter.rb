@@ -24,13 +24,17 @@ class ReleaseCutter
     @git_utilities.release_branch_name("#{@options[:version]}-version-change")
   end
 
+  def previous_release_branch
+    @git_utilities.release_branch_name("#{@options[:previous_branch]}-version-change")
+  end
+
   def perform_initial_git_operations
     @logger.info 'Cut point tagged'
     @git_utilities.add_tag("cut-#{@options[:version]}")
     @logger.info "Release branch will be called #{release_branch}"
     @git_utilities.new_branch(release_branch)
     @git_utilities.push_to_origin(release_branch)
-    return false unless @git_utilities.branches_in_sync?(develop_branch, previous_release_branch)
+    return false unless @git_utilities.branches_in_sync?('develop', previous_release_branch)
     @git_utilities.new_branch(version_branch)
     text_utilities = TextUtils.new(@logger, @options[:test_mode])
     xcode_version_changer = ChangeXcodeVersion.new

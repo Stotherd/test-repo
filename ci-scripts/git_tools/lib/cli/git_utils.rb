@@ -127,13 +127,13 @@ class GitUtils
 
   def branches_in_sync?(branch_a, branch_b)
     if remote_branch?(branch_a) == false
-      logger.error "SCRIPT_LOGGER:: Remote branch #{branch_b} does not exist."
+      @logger.error "SCRIPT_LOGGER:: Remote branch #{branch_b} does not exist."
       return false
     end
     checkout_local_branch(branch_a)
     obtain_latest
     if remote_branch?(branch_b) == false
-      logger.error "SCRIPT_LOGGER:: Remote branch #{branch_b} does not exist."
+      @logger.error "SCRIPT_LOGGER:: Remote branch #{branch_b} does not exist."
       return false
     end
     checkout_local_branch(branch_b)
