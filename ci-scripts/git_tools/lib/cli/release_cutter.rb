@@ -4,14 +4,14 @@ require 'fileutils'
 require_relative 'text_utils'
 require_relative 'dashboard_utils'
 require_relative 'jenkins_utils'
-require_relative 'change_xcode_version'
+require_relative 'xcode_utils'
 
 class ReleaseCutter
   def initialize(logger, git_utilities, options)
     @logger = logger
     @git_utilities = git_utilities
     token_utilities = TokenUtils.new(logger)
-    @token = token_utilities.find('merge_script')
+    @token = token_utilities.find('gitkeep')
     @github_utilities = GitHubUtils.new(logger, git_utilities.origin_repo_name, options[:test_mode])
     @options = options
   end
@@ -21,35 +21,47 @@ class ReleaseCutter
   end
 
   def version_branch
-    @git_utilities.release_branch_name("#{@options[:version]}-version-change")
+    @git_utilities.feature_branch_name("#{@options[:next_version]}-version-change")
+  end
+
+  def develop_branch
+    'develop'
+  end
+
+  def xcode_version_boost
+    @git_utilities.new_branch(version_branch)
+    text_utilities = TextUtils.new(@logger, @options[:test_mode])
+    xcode_version_changer = XCodeUtils.new
+    if defined?(@options[:next_version]).nil?
+      @options[:next_version] = xcode_version_changer.increment_minor_xcode_version
+    end
+    return false unless xcode_version_changer.change_xcode_version(text_utilities, @logger, @options[:next_version])
+    @git_utilities.add_file_to_commit(xcode_version_changer.xcode_proj_location)
+    @git_utilities.commit_changes("Updating version number to #{@options[:next_version]}")
+    @git_utilities.push_to_origin(version_branch)
+    @github_utilities.version_change_pull_request(version_branch, develop_branch, @token)
+    true
   end
 
   def previous_release_branch
-    @git_utilities.release_branch_name("#{@options[:previous_branch]}")
+    @git_utilities.release_branch_name((@options[:previous_branch]).to_s)
   end
 
   def perform_initial_git_operations
+    return false unless @git_utilities.branches_in_sync?(develop_branch, previous_release_branch)
     @logger.info 'Cut point tagged'
+    return false unless xcode_version_boost
+    return false unless verify_develop_state
     @git_utilities.add_tag("cut-#{@options[:version]}")
     @logger.info "Release branch will be called #{release_branch}"
     @git_utilities.new_branch(release_branch)
     @git_utilities.push_to_origin(release_branch)
-    return false unless @git_utilities.branches_in_sync?('develop', previous_release_branch)
-    @git_utilities.new_branch(version_branch)
-    text_utilities = TextUtils.new(@logger, @options[:test_mode])
-    xcode_version_changer = ChangeXcodeVersion.new
-    return false unless xcode_version_changer.change_xcode_version(text_utilities, @logger, @options[:version])
-    @git_utilities.add_file_to_commit(xcode_version_changer.xcode_proj_location)
-    @git_utilities.commit_changes("Updating version number to #{@options[:version]}")
-    @git_utilities.push_to_origin(version_branch)
     true
   end
 
   def perform_web_operations
-    #jenkins_utils = JenkinsUtils.new(@logger, @options[:test_mode])
-    #jenkins_utils.update_jenkins_whitelist_pr_test_branches(release_branch, @token)
-    @github_utilities.release_version_pull_request(version_branch, release_branch, @token)
-    exit
+    jenkins_utils = JenkinsUtils.new(@logger, @options[:test_mode])
+    jenkins_utils.update_jenkins_whitelist_pr_test_branches(release_branch, @token)
     dashboard_utils = DashboardUtils.new(@logger, @options[:test_mode])
     dashboard_utils.dashboard_cut_new_release(@options[:version], release_branch)
     jenkins_utils.update_build_branch('main_regression_multijob_branch', release_branch, @token, 'REGISTER_BRANCH')

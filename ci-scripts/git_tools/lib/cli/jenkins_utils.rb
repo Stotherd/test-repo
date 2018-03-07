@@ -3,6 +3,7 @@
 require 'net/http'
 require 'nokogiri'
 
+# Jenkins related utilities
 class JenkinsUtils
   def initialize(logger, test_mode)
     @logger = logger
@@ -22,8 +23,6 @@ class JenkinsUtils
 
   def change_branch_in_config_file(config_xml, branch_name, parameter_name)
     doc = Nokogiri::XML(config_xml)
-    properties = doc.at_css 'properties'
-    parameters = properties.at_css 'parameterDefinitions'
     doc.xpath('//hudson.model.StringParameterDefinition').each do |parameter_element|
       if parameter_element.xpath('name').text.include? parameter_name
         file = parameter_element.at_css 'defaultValue'

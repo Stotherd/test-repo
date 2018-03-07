@@ -111,12 +111,16 @@ class GitUtils
     "release/#{version}"
   end
 
+  def feature_branch_name(version)
+    "feature/#{version}"
+  end
+
   def branch_up_to_date?(branch_you_are_on, branch_to_be_checked_against)
     sha_of_to_be_merged = `git rev-parse origin/#{branch_to_be_checked_against}`
     tree_of_branch_you_are_on = `git log --pretty=short #{branch_you_are_on}`
 
     if tree_of_branch_you_are_on.include? sha_of_to_be_merged
-      @logger.error "SCRIPT_LOGGER:: Head of #{branch_to_be_checked_against} appears to be present in #{branch_you_are_on}."
+      @logger.error "SCRIPT_LOGGER:: Head of #{branch_to_be_checked_against} is present in #{branch_you_are_on}."
       return true
     end
     number_of_commits_scanned = tree_of_branch_you_are_on.scan(/commit/).count
@@ -139,7 +143,7 @@ class GitUtils
     checkout_local_branch(branch_b)
     obtain_latest
     checkout_local_branch(branch_a)
-    return branch_up_to_date?(branch_a, branch_b)
+    branch_up_to_date?(branch_a, branch_b)
   end
 
   def safe_merge(base_branch, to_be_merged_in_branch)

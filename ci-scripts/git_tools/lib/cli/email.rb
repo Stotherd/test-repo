@@ -9,11 +9,11 @@ def send_email(logger, opts = {})
 
   opts[:address]              ||= 'smtp.gmail.com'
   opts[:port]                 ||= '587'
-  opts[:user_name]            ||= token_utilities.find('merge_script_email_address')
-  opts[:password]             ||= token_utilities.find('merge_script_email_password')
+  opts[:user_name]            ||= token_utilities.find('gitkeep_email_address')
+  opts[:password]             ||= token_utilities.find('gitkeep_email_password')
   opts[:authentication]       ||= 'plain'
   opts[:enable_starttls_auto] ||= true
-  opts[:email_to]             ||= token_utilities.find('merge_script_email_address')
+  opts[:email_to]             ||= token_utilities.find('gitkeep_email_address')
   opts[:email_from]           ||= 'cornerstone@shopkeep.com'
   opts[:email_from_alias]     ||= 'Cornerstone'
   opts[:email_subject]        ||= ''

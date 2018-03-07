@@ -11,6 +11,8 @@ require_relative 'release_cutter'
 require_relative 'dashboard_utils'
 require_relative 'notification'
 require_relative 'jenkins_utils'
+require_relative 'slack_utils'
+require_relative 'xcode_utils'
 
 module Gitkeep
   module CLI
@@ -28,8 +30,11 @@ module Gitkeep
       c.flag %i[s sha], type: String
       c.desc 'The previous release branch name'
       c.flag %i[p previous_branch], type: String
+      c.desc 'The next version number to be used'
+      c.flag %i[n next_version], type: String
       c.desc 'Test Mode - does no external operations but logs web requests and git operations instead.'
       c.switch %i[t test_mode]
+
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info "Cutting release for #{options[:version]}."
@@ -151,7 +156,6 @@ module Gitkeep
         dashboard_utils.release_release(options[:version], options[:build_number])
       end
     end
-
     command :enable_pr_testing do |c|
       c.desc 'test mode'
       c.switch %i[t test_mode]
@@ -163,7 +167,7 @@ module Gitkeep
         logger.info "Adding pr testing to #{options[:branch_name]}"
         jenkins_utils = JenkinsUtils.new(logger, options[:test_mode])
         token_utilities = TokenUtils.new(logger)
-        token = token_utilities.find('merge_script')
+        token = token_utilities.find('gitkeep')
         jenkins_utils.update_jenkins_whitelist_pr_test_branches(options[:branch_name], token)
         git_utilities = GitUtils.new(logger, options[:test_mode])
         github_utilities = GitHubUtils.new(logger, git_utilities.origin_repo_name, options[:test_mode])
@@ -171,12 +175,39 @@ module Gitkeep
       end
     end
 
-    command :release_branch_status do |c|
+    command :xcode_version_boost do |c|
+      c.desc 'test mode'
+      c.switch %i[t test_mode]
+      c.desc 'The next version number to be used'
+      c.flag %i[n next_version], type: String
+      c.action do |_global_option, options, _args|
+        logger = Logger.new(STDOUT)
+        logger.info "Boosting version to #{options[:next_version]}."
+        git_utilities = GitUtils.new(logger, options[:test_mode])
+        release_cutter = ReleaseCutter.new(logger, git_utilities, options)
+        release_cutter.xcode_version_boost
+      end
+    end
+
+    command :send_slack do |c|
+      c.desc 'channel to send to'
+      c.flag %i[c channel], type: String
+      c.desc 'message to send'
+      c.flag %i[m message], type: String
+      c.action do |_global_option, options, _args|
+        logger = Logger.new(STDOUT)
+        logger.info "Sending message: '#{options[:message]}' to channel: #{options[:channel]}"
+        slack_utilities = SlackUtils.new(logger)
+        slack_utilities.send_message(options[:channel], options[:message])
+      end
+    end
+
+    command :compare_branch_status do |c|
       c.desc 'test mode'
       c.switch %i[t test_mode]
       c.desc 'branch to check (normally develop)'
       c.flag %i[b base_branch], type: String
-      c.desc 'branch to be compare against develop (normally the release branch)'
+      c.desc 'branch to be compare against (normally the release branch)'
       c.flag %i[o other_branch], type: String
 
       c.action do |_global_option, options, _args|
@@ -184,13 +215,23 @@ module Gitkeep
         logger.info "Checking #{options[:base_branch]} against #{options[:other_branch]}"
         git_utilities = GitUtils.new(logger, options[:test_mode])
         if git_utilities.branches_in_sync?(options[:base_branch], options[:other_branch])
-          logger.info "Branch #{options[:other_branch]} appears to be merged with #{options[:base_branch]}"
+          logger.info "Branch #{options[:other_branch]} is present in #{options[:base_branch]}"
         else
           logger.info "Branch #{options[:other_branch]} has not been merged with #{options[:base_branch]}"
+          exit(false)
         end
-
-
       end
     end
+
+    command :get_xcode_version do |c|
+      c.action do |_global_option, options, _args|
+        logger = Logger.new(STDOUT)
+        xcode_utils = XCodeUtils.new
+        text_utilities = TextUtils.new(logger, false)
+        logger.info xcode_utils.get_xcode_version(text_utilities)
+        xcode_utils.increment_minor_xcode_version(text_utilities, logger)
+      end
+    end
+
   end
 end

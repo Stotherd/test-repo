@@ -70,7 +70,7 @@ class GitHubUtils
     else
       @logger.error 'SCRIPT_LOGGER:: Could not create the pull request -
       response to network request was: '
-      @logger.error res.body
+      @logger.error body
       @logger.error "SCRIPT_LOGGER:: reverting back to #{current_branch}"
       system("git checkout #{current_branch} > /dev/null 2>&1")
       @logger.error "SCRIPT_LOGGER::
@@ -117,10 +117,10 @@ class GitHubUtils
     build_http_request("/branches/#{branch_name}/protection", 'PUT', json_for_protection.to_json, oauth_token)
   end
 
-  def release_version_pull_request(version_branch, release_branch, oauth_token)
-    setup_status_checks(release_branch, oauth_token)
-    title = "Bumping version number for #{release_branch}"
-    body_text = "Automated pull request to bump the version number for #{release_branch}"
+  def version_change_pull_request(version_branch, develop_branch, oauth_token)
+    setup_status_checks(develop_branch, oauth_token)
+    title = "Bumping version number for #{develop_branch}"
+    body_text = "Automated pull request to bump the version number for #{develop_branch} for the next release"
 
     if @test_mode
       @logger.info "TEST MODE GITHUB OPS :: Release PR, title: #{title}, text: #{body_text}"
@@ -129,7 +129,7 @@ class GitHubUtils
     res = build_http_request('/pulls', 'POST', { title: title,
                                                  body: body_text,
                                                  head: version_branch,
-                                                 base: release_branch }.to_json, oauth_token)
+                                                 base: develop_branch }.to_json, oauth_token)
     verify_pull_request_opened?(res.body, title, version_branch)
   end
 

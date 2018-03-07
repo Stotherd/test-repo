@@ -11,6 +11,17 @@ class TextUtils
     regex =~ str
   end
 
+  def find_text_in_file(file, regex_to_find)
+    File.open file do |f|
+      return f.find { |line| line =~ regex_to_find }
+    end
+  end
+
+  def find_text_in_string(string_to_search, regex_to_find)
+    print string_to_search
+    string_to_search.match(regex_to_find).to_s
+  end
+
   def change_on_file(file, regex_to_find, text_to_put_in_place)
     text = File.read file
     if @test_mode

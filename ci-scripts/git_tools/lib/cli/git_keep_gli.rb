@@ -10,158 +10,22 @@ require_relative 'forward_merge'
 
 module Gitkeep
   module CLI
-    help_text = "Performs a forward merge and pull request on
-    Shopkeep's ipad-register repo. Run inside the repo.
+    help_text = "This is the setup and general operations for gitkeep
 
-    Requires gems ruby-git and gli.
-
-    Running full command:
-
-    Either:
-
-    This application needs an oauth token to run. Add the oauth token to the key
+    GitKeep needs an oauth token to run. Add the oauth token to the key
     chain ->
 
-    bin/gitkeep setup --oauth_token [INSERT_OAUTH_KEY_HERE]
-
-    And then execute your merge, following prompts ->
-    bin/gitkeep forward_merge -b [branch_you_are_on] -m [branch_to_be_merged_in]
-
-    For a promptless execution ->
-    bin/gitkeep forward_merge -b [branch_you_are_on] -m [branch_to_be_merged_in] -p -g -a
-    (-p push to master, -g generate pull request, -a automatic)
-
-    Conflicts
-
-    Conflicts with the merge will cause the script to pause. Fix the conflicts and
-    then press enter on the script to continue.
-
-    Clean
-
-    reverse the attempt to forward merge. This will delete the created
-    branch, abort the merge and checkout the branch thats the first
-    parameter. Adding -r will delete the remotely created branch, and by doing so
-    github will close the Pull Request if one was created.
-    Some fatal logging may not be fatal. The clean function is a
-    brute force method that you might want to check has fully cleaned up resources
-    after.
-
-    bin/gitkeep clean -b [branch_you_are_on] -m [branch_to_be_merged_in]
-
-    How this script normally works:
-
-    Builds the forward merge branch name
-    Verify authentication
-    fetch/pull to verify branch is up to date, and network is good
-        git fetch
-        check result of fetch
-        git pull
-        check result of pull
-    check that to_be_merged_in_branch exists remotely
-    if the forward merge branch already exists, remotely or locally, or both,
-        check it out,
-        update it if neccesary (fetch/pull/merge)
-    otherwise
-        go back to the original branch
-        create the new forward merge branch
-        perform merge
-    push to origin (prompt or -p)
-    create pull request (prompt or -g)
+    bin/gitkeep setup_oauth --oauth_token [INSERT_OAUTH_KEY_HERE]
     "
     desc help_text
     arg_name '<args>...', %i[multiple]
-    command :forward_merge do |c|
-      c.desc 'Pass a base_branch'
-      c.flag %i[b base_branch], type: String
-      c.desc 'Pass a merge branch'
-      c.flag %i[m merge_branch], type: String
-      c.desc 'Push the generated branch to origin'
-      c.switch %i[p push]
-      c.desc 'Generate a pull request'
-      c.switch %i[g generate_pull_request]
-      c.desc 'Run through script with no user input where possible'
-      c.switch %i[a automatic]
-      c.desc 'Push up without a pull request'
-      c.switch %i[f force_merge]
-      c.desc 'Output the autocomplete list for a forward merge'
-      c.switch %i[c complete]
-      c.desc 'Output local branch list'
-      c.switch %i[output_local]
-      c.desc 'Output remote branch list'
-      c.switch %i[output_remote]
-      c.desc 'Test mode'
-      c.switch %i[t test_mode]
-      c.action do |_global_options, options, _args|
-        logger = Logger.new(STDOUT)
-        git_utilities = GitUtils.new(logger, options[:test_mode])
-        if options[:complete]
-          options.each_key do |key|
-            if key.length > 2
-              puts '--' << key.to_s
-            else
-              puts '-' << key.to_s
-            end
-          end
-        elsif options[:output_local]
-          puts git_utilities.list_local_branches
-        elsif options[:output_remote]
-          puts git_utilities.list_remote_branches
-        else
-          forward_merger = ForwardMerge.new(logger, git_utilities, options)
-          forward_merger.merge
-          logger.info 'Exiting...'
-        end
-      end
-    end
-    desc 'Clean up a previous aborted forward merge request'
-    arg_name '<args>...', %i[multiple]
-    command :clean do |c|
-      c.desc 'Pass a base_branch'
-      c.flag %i[b base_branch], type: String
-      c.desc 'Pass a merge branch'
-      c.flag %i[m merge_branch], type: String
-      c.desc 'Clean up remote branch too'
-      c.switch %i[p push_delete_to_origin]
-      c.desc 'Output the autocomplete list for clean'
-      c.switch %i[c complete]
-      c.desc 'Output local branch list'
-      c.switch %i[output_local]
-      c.desc 'Output remote branch list'
-      c.switch %i[output_remote]
-      c.desc 'Test mode'
-      c.switch %i[t test_mode]
-      c.action do |_global_options, options, _args|
-        logger = Logger.new(STDOUT)
-        git_utilities = GitUtils.new(logger, options[:test_mode])
-        if options[:complete]
-          options.each_key do |key|
-            if key.length > 2
-              puts '--' << key.to_s
-            else
-              puts '-' << key.to_s
-            end
-          end
-        elsif options[:output_local]
-          puts git_utilities.list_local_branches
-        elsif options[:output_remote]
-          puts git_utilities.list_remote_branches
-        else
-          forward_branch = git_utilities.forward_branch_name(options[:base_branch], options[:merge_branch])
-          git_utilities.forward_merge_clean(options[:base_branch], forward_branch, options[:push_delete_to_origin])
-        end
-      end
-    end
-    desc 'Oauth token setup for forward merge script'
-    arg_name '<args>...', %i[multiple]
-    command :setup do |c|
-      c.desc 'The oauth token to be used in setup'
+    command :setup_oauth do |c|
+      c.desc 'The oauth token to be used in setup_oauth'
       c.flag %i[o oauth_token], type: String
       c.desc 'Delete the configured oauth token for the merge script'
       c.switch %i[d delete_token]
       c.desc 'Output the autocomplete list for setup'
       c.switch %i[c complete]
-      c.desc 'The email address to be used in setup'
-      c.flag %i[e email_address], type: String
       c.desc 'Test mode'
       c.switch %i[t test_mode]
       c.action do |_global_options, options, _args|
@@ -175,32 +39,71 @@ module Gitkeep
               puts '-' << key.to_s
             end
           end
-        elsif options[:delete_token]
-          token_utilities.remove('merge_script')
         else
           if options[:delete_token]
-            token_utilities.remove('merge_script')
-            token_utilities.remove('merge_script_email_address')
-            token_utilities.remove('merge_script_email_password')
+            token_utilities.remove('gitkeep')
           else
             unless options[:oauth_token]
-              logger.error 'SCRIPT_LOGGER:: Need an oauth token to set! use -o TOKEN_STRING'
-              exit
+              logger.error 'SCRIPT_LOGGER:: Need an oauth token to set! exit and use -o TOKEN_STRING, or input below'
+              options[:oauth_token] = STDIN.noecho(&:gets).chomp
             end
-            unless options[:email_address]
-              logger.error 'SCRIPT_LOGGER:: Need an email address to set! use -e EMAIL_STRING'
-              exit
-            end
-
-            print 'Enter email password: '
-            email_password = STDIN.noecho(&:gets).chomp
-
-            logger.info 'Saving merge_script token'
-            token_utilities.save('merge_script', options[:oauth_token])
-            token_utilities.save('merge_script_email_address', options[:email_address])
-            token_utilities.save('merge_script_email_password', email_password)
+            logger.info 'Saving gitkeep token'
+            token_utilities.save('gitkeep', options[:oauth_token])
           end
-          token_utilities.save('merge_script', options[:oauth_token])
+          token_utilities.save('gitkeep', options[:oauth_token])
+        end
+      end
+    end
+
+    help_text = "This is the setup and general operations for gitkeep
+
+    GitKeep needs an email address for some operations to run. Add the email to the key
+    chain ->
+
+    bin/gitkeep setup_email --email_address [INSERT_EMAIL_HERE] --email_password [INSERT_EMAIL_PASSWORD_HERE]
+    "
+    desc help_text
+    arg_name '<args>...', %i[multiple]
+    command :setup_email do |c|
+      c.desc 'Delete the configured email for the merge script'
+      c.switch %i[d delete_email]
+      c.desc 'Output the autocomplete list for setup_email'
+      c.switch %i[c complete]
+      c.desc 'The email address to be used in setup'
+      c.flag %i[e email_address], type: String
+      c.desc 'The email address password to be used'
+      c.flag %i[p password], type: String
+      c.desc 'Test mode'
+      c.switch %i[t test_mode]
+      c.action do |_global_options, options, _args|
+        logger = Logger.new(STDOUT)
+        token_utilities = TokenUtils.new(logger)
+        if options[:complete]
+          options.each_key do |key|
+            if key.length > 2
+              puts '--' << key.to_s
+            else
+              puts '-' << key.to_s
+            end
+          end
+        else
+          if options[:delete_email]
+            token_utilities.remove('gitkeep_email_address')
+            token_utilities.remove('gitkeep_email_password')
+          else
+            unless options[:email_address]
+              logger.error 'SCRIPT_LOGGER:: Need an email address to set! Exit and use -e EMAIL_STRING, or input below'
+              options[:email_address] = $stdin.gets.chomp
+            end
+
+            unless options[:email_password]
+              logger.error 'SCRIPT_LOGGER:: Need an email password to set! Exit and use -p EMAIL_PASSWORD or input below'
+              options[:email_password] = STDIN.noecho(&:gets).chomp
+            end
+            logger.info 'Saving email address and password to keychain'
+          end
+          token_utilities.save('gitkeep_email_address', options[:email_address])
+          token_utilities.save('gitkeep_email_password', options[:email_password])
         end
       end
     end
