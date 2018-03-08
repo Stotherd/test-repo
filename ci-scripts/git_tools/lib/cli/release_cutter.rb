@@ -29,17 +29,24 @@ class ReleaseCutter
   end
 
   def xcode_version_boost
-    @git_utilities.new_branch(version_branch)
-    text_utilities = TextUtils.new(@logger, @options[:test_mode])
     xcode_version_changer = XCodeUtils.new
-    if defined?(@options[:next_version]).nil?
-      @options[:next_version] = xcode_version_changer.increment_minor_xcode_version
+    if(@options[:test_mode])
+      text_utilities = TextUtilsTest.new(@logger)
+    else
+      text_utilities = TextUtils.new(@logger)
     end
+    @logger.info 'Pre Check'
+    if @options[:next_version].nil?
+      @logger.info 'In check'
+      @options[:next_version] = xcode_version_changer.increment_minor_xcode_version(text_utilities, @logger)
+    end
+    @logger.info 'exit check'
+    @git_utilities.new_branch(version_branch)
     return false unless xcode_version_changer.change_xcode_version(text_utilities, @logger, @options[:next_version])
     @git_utilities.add_file_to_commit(xcode_version_changer.xcode_proj_location)
     @git_utilities.commit_changes("Updating version number to #{@options[:next_version]}")
     @git_utilities.push_to_origin(version_branch)
-    @github_utilities.version_change_pull_request(version_branch, develop_branch, @token)
+    @github_utilities.version_change_pull_request(@options[:next_version], version_branch, develop_branch, @token)
     true
   end
 
@@ -101,7 +108,6 @@ class ReleaseCutter
       return false
     end
     true
-    # check sha if present
   end
 
   def open_pull_requests

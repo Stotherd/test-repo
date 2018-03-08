@@ -117,10 +117,10 @@ class GitHubUtils
     build_http_request("/branches/#{branch_name}/protection", 'PUT', json_for_protection.to_json, oauth_token)
   end
 
-  def version_change_pull_request(version_branch, develop_branch, oauth_token)
+  def version_change_pull_request(version, version_branch, develop_branch, oauth_token)
     setup_status_checks(develop_branch, oauth_token)
-    title = "Bumping version number for #{develop_branch}"
-    body_text = "Automated pull request to bump the version number for #{develop_branch} for the next release"
+    title = "Bumping version number for #{develop_branch} to #{version} "
+    body_text = "Automated pull request to bump the version number for #{develop_branch} for the next release, #{version} "
 
     if @test_mode
       @logger.info "TEST MODE GITHUB OPS :: Release PR, title: #{title}, text: #{body_text}"

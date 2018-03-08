@@ -13,7 +13,7 @@ class GitUtils
 
   def system_command(command, writable)
     if @test_mode && writable
-      @logger.info "TEST_MODE SYSTEM CALL:: #{command}"
+      @logger.info "TEST_MODE:: #{command}"
       return true
     end
     system(command)

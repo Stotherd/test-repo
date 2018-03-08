@@ -17,8 +17,6 @@ class XCodeUtils
     major = text_utilities.find_text_in_string(xcode_version, /([0-9]?[0-9])\./).tr('.','')
     minor = text_utilities.find_text_in_string(xcode_version, /\.([0-9]?[0-9])\./).tr('.','').to_i
     "#{major}.#{(minor + 1).to_s}.0"
-
-
   end
 
   def change_xcode_version(text_utilities, logger, version)

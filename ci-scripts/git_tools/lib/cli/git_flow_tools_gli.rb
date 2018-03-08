@@ -87,6 +87,8 @@ module Gitkeep
       c.switch %i[output_local]
       c.desc 'Output remote branch list'
       c.switch %i[output_remote]
+      c.desc 'Override the stored, or provide a different oauth_token'
+      c.switch %i[o oauth_token]
       c.desc 'Test mode - this should perform no destructive/creative operations but will output the text of the operations to log'
       c.switch %i[t test_mode]
       c.action do |_global_options, options, _args|

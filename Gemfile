@@ -1,0 +1,8 @@
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
+
+gem 'git'
+gem 'gli', '2.15.0'
+gem 'mail'
+gem 'nokogiri'

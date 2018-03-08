@@ -18,19 +18,39 @@ class TextUtils
   end
 
   def find_text_in_string(string_to_search, regex_to_find)
-    print string_to_search
     string_to_search.match(regex_to_find).to_s
   end
 
   def change_on_file(file, regex_to_find, text_to_put_in_place)
     text = File.read file
-    if @test_mode
-      @logger.info "TEST_MODE CODE CALL:: #{text.gsub(regex_to_find, text_to_put_in_place)}"
-      return true
-    end
     File.open(file, 'w+') do |f|
       f << text.gsub(regex_to_find,
                      text_to_put_in_place)
     end
+  end
+end
+
+# Test version of utitilies for changing text in the project.
+class TextUtilsTest
+  def initialize(log, test_mode)
+    @logger = log
+    @text_utilities = TextUtils.new
+  end
+
+  def verify_text_matches_regex(regex, str)
+    @text_utilities.verify_text_matches_regex(regex, str)
+  end
+
+  def find_text_in_file(file, regex_to_find)
+    @text_utilities.find_text_in_file(file, regex_to_find)
+  end
+
+  def find_text_in_string(string_to_search, regex_to_find)
+    @text_utilities.find_text_in_string(string_to_search, regex_to_find)
+  end
+
+  def change_on_file(file, regex_to_find, text_to_put_in_place)
+    @logger.info "TEST_MODE CODE CALL:: #{regex_to_find}, #{text_to_put_in_place}"
+    return true
   end
 end

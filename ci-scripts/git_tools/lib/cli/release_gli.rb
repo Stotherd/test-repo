@@ -182,7 +182,6 @@ module Gitkeep
       c.flag %i[n next_version], type: String
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
-        logger.info "Boosting version to #{options[:next_version]}."
         git_utilities = GitUtils.new(logger, options[:test_mode])
         release_cutter = ReleaseCutter.new(logger, git_utilities, options)
         release_cutter.xcode_version_boost
