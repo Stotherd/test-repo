@@ -2,10 +2,11 @@
 
 class ForwardMerge
   def initialize(logger, git_utilities, options)
+
     @logger = logger
     @git_utilities = git_utilities
-    if @options[:oauth_token]!=nil
-      @token = @options[:oauth_token]
+    if options[:oauth_token]!=nil
+      @token = options[:oauth_token]
     else
       token_utilities = TokenUtils.new(logger)
       @token = token_utilities.find('gitkeep')
@@ -41,7 +42,7 @@ class ForwardMerge
 
   def verify_parameters
     if @github_utilities.valid_credentials?(@token) == false
-      logger.error 'Credentials incorrect, please verify your OAuth token is valid'
+      @logger.error 'Credentials incorrect, please verify your OAuth token is valid'
       return false
     end
     @logger.info 'Credentials authenticated'
