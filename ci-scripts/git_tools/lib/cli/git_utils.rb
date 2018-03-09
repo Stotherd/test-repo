@@ -68,8 +68,9 @@ class GitUtils
     if @test_mode
       @logger.info "TEST_MODE GIT CALL:: git.checkout(#{branch_name})"
     else
-      print @git.checkout(branch_name)
       print @git.checkout("master")
+      print @git.checkout(branch_name)
+
     end
   end
 
