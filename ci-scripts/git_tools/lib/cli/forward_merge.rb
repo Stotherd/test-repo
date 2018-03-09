@@ -4,8 +4,12 @@ class ForwardMerge
   def initialize(logger, git_utilities, options)
     @logger = logger
     @git_utilities = git_utilities
-    token_utilities = TokenUtils.new(logger)
-    @token = token_utilities.find('gitkeep')
+    if @options[:oauth_token]!=nil
+      @token = @options[:oauth_token]
+    else
+      token_utilities = TokenUtils.new(logger)
+      @token = token_utilities.find('gitkeep')
+    end
     @github_utilities = GitHubUtils.new(
       logger,
       git_utilities.origin_repo_name,
