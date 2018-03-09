@@ -157,7 +157,12 @@ class ForwardMerge
       end
     end
     @logger.info "SCRIPT_LOGGER:: Successfully checked out the #{@options[:base_branch]} branch"
-    @git_utilities.checkout_local_branch(forward_branch)
+    if @git_utilities.system_command("git checkout -b #{forward_branch}", true) != true
+      @logger.error 'SCRIPT_LOGGER:: Failed to create new branch.'
+      return false
+    else
+      @logger.info 'SCRIPT_LOGGER:: Branch created'
+    end
   end
 
   def create_branch_as_required(local_present, remote_present)
