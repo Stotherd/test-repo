@@ -151,13 +151,13 @@ class ForwardMerge
 
     if @git_utilities.system_command("git checkout -b #{@options[:base_branch]} origin/#{@options[:base_branch]} > /dev/null 2>&1", true) != true
       @logger.warn "SCRIPT_LOGGER:: Failed to checkout #{@options[:base_branch]} from remote, checking if locally available"
-      if git_utils.checkout_local_branch(@options[:base_branch]) != true
+      if @git_utilities.checkout_local_branch(@options[:base_branch]) != true
         @logger.error 'SCRIPT_LOGGER:: Failed to checkout branch locally, unable to continue'
         return false
       end
     end
     @logger.info "SCRIPT_LOGGER:: Successfully checked out the #{@options[:base_branch]} branch"
-    git_utils.checkout_local_branch(forward_branch)
+    @git_utilities.checkout_local_branch(forward_branch)
   end
 
   def create_branch_as_required(local_present, remote_present)
