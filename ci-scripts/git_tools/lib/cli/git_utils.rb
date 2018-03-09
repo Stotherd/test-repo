@@ -69,8 +69,7 @@ class GitUtils
       @logger.info "TEST_MODE GIT CALL:: git.checkout(#{branch_name})"
     else
       print @git.checkout("master")
-      print @git.checkout(branch_name)
-
+      return @git.checkout(branch_name)
     end
   end
 
