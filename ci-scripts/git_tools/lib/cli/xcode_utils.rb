@@ -8,15 +8,14 @@ class XCodeUtils
 
   def get_xcode_version(text_utilities)
     str = text_utilities.find_text_in_file(xcode_proj_location, /CURRENT_PROJECT_VERSION = [1-9]?[1-9]\.[1-9]?[0-9]\.[1-9]?[0-9]/)
-    print str
     text_utilities.find_text_in_string(str, /[1-9]?[1-9]\.[1-9]?[0-9]\.[1-9]?[0-9]/)
   end
 
-  def increment_minor_xcode_version(text_utilities, logger)
+  def increment_minor_xcode_version(text_utilities, _logger)
     xcode_version = get_xcode_version(text_utilities)
-    major = text_utilities.find_text_in_string(xcode_version, /([0-9]?[0-9])\./).tr('.','')
-    minor = text_utilities.find_text_in_string(xcode_version, /\.([0-9]?[0-9])\./).tr('.','').to_i
-    "#{major}.#{(minor + 1).to_s}.0"
+    major = text_utilities.find_text_in_string(xcode_version, /([0-9]?[0-9])\./).tr('.', '')
+    minor = text_utilities.find_text_in_string(xcode_version, /\.([0-9]?[0-9])\./).tr('.', '').to_i
+    "#{major}.#{(minor + 1)}.0"
   end
 
   def change_xcode_version(text_utilities, logger, version)

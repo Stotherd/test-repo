@@ -6,7 +6,7 @@ require 'logger'
 require_relative 'git_utils'
 require_relative 'token_utils'
 require_relative 'github_utils'
-require_relative 'forward_merge'
+require_relative 'merger'
 require_relative 'release_cutter'
 require_relative 'dashboard_utils'
 require_relative 'notification'
@@ -221,16 +221,5 @@ module Gitkeep
         end
       end
     end
-
-    command :get_xcode_version do |c|
-      c.action do |_global_option, options, _args|
-        logger = Logger.new(STDOUT)
-        xcode_utils = XCodeUtils.new
-        text_utilities = TextUtils.new(logger, false)
-        logger.info xcode_utils.get_xcode_version(text_utilities)
-        xcode_utils.increment_minor_xcode_version(text_utilities, logger)
-      end
-    end
-
   end
 end

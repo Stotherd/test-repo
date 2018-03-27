@@ -30,17 +30,16 @@ class ReleaseCutter
 
   def xcode_version_boost
     xcode_version_changer = XCodeUtils.new
-    if(@options[:test_mode])
-      text_utilities = TextUtilsTest.new(@logger)
-    else
-      text_utilities = TextUtils.new(@logger)
-    end
-    @logger.info 'Pre Check'
+    text_utilities = if @options[:test_mode]
+                       TextUtilsTest.new(@logger)
+                     else
+                       TextUtils.new(@logger)
+                     end
     if @options[:next_version].nil?
-      @logger.info 'In check'
+      @logger.info 'No next version passed in'
       @options[:next_version] = xcode_version_changer.increment_minor_xcode_version(text_utilities, @logger)
+      @logger.info "Automatically bumping version number to #{@options[:next_version]}"
     end
-    @logger.info 'exit check'
     @git_utilities.new_branch(version_branch)
     return false unless xcode_version_changer.change_xcode_version(text_utilities, @logger, @options[:next_version])
     @git_utilities.add_file_to_commit(xcode_version_changer.xcode_proj_location)
@@ -69,10 +68,11 @@ class ReleaseCutter
   def perform_web_operations
     jenkins_utils = JenkinsUtils.new(@logger, @options[:test_mode])
     jenkins_utils.update_jenkins_whitelist_pr_test_branches(release_branch, @token)
-    dashboard_utils = DashboardUtils.new(@logger, @options[:test_mode])
-    dashboard_utils.dashboard_cut_new_release(@options[:version], release_branch)
     jenkins_utils.update_build_branch('main_regression_multijob_branch', release_branch, @token, 'REGISTER_BRANCH')
     jenkins_utils.update_build_branch('Register-Beta-iTunes-Builder', release_branch, @token, 'BRANCH_TO_BUILD')
+    jenkins_utils.update_build_branch('iOS-develop-release-merge-checker', release_branch, @token, 'RELEASE_BRANCH')
+    dashboard_utils = DashboardUtils.new(@logger, @options[:test_mode])
+    dashboard_utils.dashboard_cut_new_release(@options[:version], release_branch)
   end
 
   def cut_release

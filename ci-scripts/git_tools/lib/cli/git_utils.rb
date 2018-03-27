@@ -19,9 +19,9 @@ class GitUtils
     system(command)
   end
 
-  def forward_merge_clean(branch_you_were_on,
-                          branch_to_be_deleted,
-                          clean_remote)
+  def merger_clean(branch_you_were_on,
+                   branch_to_be_deleted,
+                   clean_remote)
     @logger.info "SCRIPT_LOGGER:: Checking out #{branch_you_were_on}"
     system_command('git merge --abort > /dev/null 2>&1', true)
     system_command("git checkout #{branch_you_were_on}  > /dev/null 2>&1", true)
@@ -103,8 +103,8 @@ class GitUtils
     end
   end
 
-  def forward_branch_name(base_branch, merge_branch)
-    "forward-merge-#{merge_branch}-to-#{base_branch}"
+  def merge_branch_name(base_branch, merge_branch)
+    "auto/merge-#{merge_branch}-to-#{base_branch}"
   end
 
   def release_branch_name(version)
@@ -120,7 +120,7 @@ class GitUtils
     tree_of_branch_you_are_on = `git log --pretty=short #{branch_you_are_on}`
 
     if tree_of_branch_you_are_on.include? sha_of_to_be_merged
-      @logger.error "SCRIPT_LOGGER:: Head of #{branch_to_be_checked_against} is present in #{branch_you_are_on}."
+      @logger.info "SCRIPT_LOGGER:: Head of #{branch_to_be_checked_against} is present in #{branch_you_are_on}."
       return true
     end
     number_of_commits_scanned = tree_of_branch_you_are_on.scan(/commit/).count
@@ -182,7 +182,7 @@ class GitUtils
     end
     safe_merge(base_branch, head_branch)
     push_to_origin(base_branch)
-    forward_merge_clean(base_branch, head_branch, true)
+    merger_clean(base_branch, head_branch, true)
   end
 
   def origin_repo_name

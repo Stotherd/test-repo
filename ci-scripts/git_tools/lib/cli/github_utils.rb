@@ -81,7 +81,7 @@ class GitHubUtils
     end
   end
 
-  def forward_merge_pull_request(merge_branch, current_branch, oauth_token)
+  def merger_pull_request(merge_branch, current_branch, oauth_token)
     text = "Automated pull request of #{merge_branch} into #{current_branch}"
     if @test_mode
       @logger.info "TEST MODE GITHUB OPS :: PR POST, text: #{text}"

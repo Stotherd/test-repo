@@ -6,7 +6,7 @@ require 'io/console'
 require_relative 'git_utils'
 require_relative 'token_utils'
 require_relative 'github_utils'
-require_relative 'forward_merge'
+require_relative 'merger'
 
 module Gitkeep
   module CLI

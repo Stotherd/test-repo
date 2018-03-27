@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
-class ForwardMerge
+class Merger
   def initialize(logger, git_utilities, options)
-
     @logger = logger
     @git_utilities = git_utilities
-    if options[:oauth_token]!=nil
+    if !options[:oauth_token].nil?
       @token = options[:oauth_token]
     else
       token_utilities = TokenUtils.new(logger)
@@ -19,8 +18,8 @@ class ForwardMerge
     @options = options
   end
 
-  def forward_branch
-    @git_utilities.forward_branch_name(
+  def merge_branch
+    @git_utilities.merge_branch_name(
       @options[:base_branch],
       @options[:merge_branch]
     )
@@ -36,7 +35,7 @@ class ForwardMerge
       verification_result[1],
       verification_result[2]
     )
-    @git_utilities.safe_merge(forward_branch, @options[:merge_branch])
+    @git_utilities.safe_merge(merge_branch, @options[:merge_branch])
     return false unless perform_github_ops(perform_push)
   end
 
@@ -86,58 +85,58 @@ class ForwardMerge
     @git_utilities.push_to_origin(@options[:base_branch])
 
     remote_merge_branch_present = false
-    local_forward_branch_present = false
-    remote_forward_branch_present = false
+    local_merge_branch_present = false
+    remote_merge_branch_present = false
 
     if @git_utilities.remote_branch?(@options[:merge_branch]) == false
       @logger.error
       "SCRIPT_LOGGER:: Remote branch #{@options[:merge_branch]} does not exist."
-      return [remote_merge_branch_present, local_forward_branch_present, remote_forward_branch_present]
+      return [remote_merge_branch_present, local_merge_branch_present, remote_merge_branch_present]
     end
 
     remote_merge_branch_present = true
-    if @git_utilities.local_branch?(forward_branch) == true
-      @logger.warn "SCRIPT_LOGGER:: Forward merge branch #{forward_branch} already locally exists."
-      local_forward_branch_present = true
+    if @git_utilities.local_branch?(merge_branch) == true
+      @logger.warn "SCRIPT_LOGGER:: Merge branch #{merge_branch} already locally exists."
+      local_merge_branch_present = true
     end
 
-    if @git_utilities.remote_branch?(forward_branch) == true
-      @logger.warn "SCRIPT_LOGGER:: Forward merge branch #{forward_branch} already remotely exists."
-      remote_forward_branch_present = true
+    if @git_utilities.remote_branch?(merge_branch) == true
+      @logger.warn "SCRIPT_LOGGER:: Merge branch #{merge_branch} already remotely exists."
+      remote_merge_branch_present = true
     end
-    [remote_merge_branch_present, local_forward_branch_present, remote_forward_branch_present]
+    [remote_merge_branch_present, local_merge_branch_present, remote_merge_branch_present]
   end
 
   def continue_after_diff?
     return true unless @options[:automatic]
-    @git_utilities.system_command("git diff origin/#{@options[:base_branch]} #{forward_branch}", false)
+    @git_utilities.system_command("git diff origin/#{@options[:base_branch]} #{merge_branch}", false)
     return false unless @git_utilities.user_input_to_continue('SCRIPT_LOGGER:: The above diff contains the differences between the 2 branches. Do you wish to continue with the merge? (y/n)')
     true
   end
 
   def resolve_git_if_either_branch_present(local_branch_present, remote_branch_present)
     if local_branch_present
-      @git_utilities.checkout_local_branch(forward_branch)
+      @git_utilities.checkout_local_branch(merge_branch)
       if remote_branch_present
         @git_utilities.obtain_latest
       elsif @options[:push] == true
-        @git_utilities.push_to_origin(forward_branch)
+        @git_utilities.push_to_origin(merge_branch)
       end
-    elsif remote_branch_present && @git_utilities.system_command("git checkout -b #{forward_branch} origin/#{forward_branch} > /dev/null 2>&1", true) != true
-      @logger.error "SCRIPT_LOGGER:: Failed to checkout #{forward_branch} from remote"
+    elsif remote_branch_present && @git_utilities.system_command("git checkout -b #{merge_branch} origin/#{merge_branch} > /dev/null 2>&1", true) != true
+      @logger.error "SCRIPT_LOGGER:: Failed to checkout #{merge_branch} from remote."
       return false
     end
-    return false unless @git_utilities.branch_up_to_date?(forward_branch, @options[:base_branch]) != true
+    return false unless @git_utilities.branch_up_to_date?(merge_branch, @options[:base_branch]) != true
     return false unless continue_after_diff?
-    @logger.info "SCRIPT_LOGGER:: Updating #{forward_branch} with latest from #{@options[:base_branch]}"
-    @git_utilities.safe_merge(forward_branch, @options[:base_branch])
-    @git_utilities.push_to_origin(forward_branch) if @options[:push] == true
+    @logger.info "SCRIPT_LOGGER:: Updating #{merge_branch} with latest from #{@options[:base_branch]}"
+    @git_utilities.safe_merge(merge_branch, @options[:base_branch])
+    @git_utilities.push_to_origin(merge_branch) if @options[:push] == true
   end
 
   def resolve_git_if_neither_present
-    @logger.info "SCRIPT_LOGGER:: Forward merge branch will be called #{forward_branch}"
+    @logger.info "SCRIPT_LOGGER:: Merge branch will be called #{merge_branch}"
     if @git_utilities.branch_up_to_date?(@options[:base_branch], @options[:merge_branch]) == true
-      @logger.info "SCRIPT_LOGGER:: We don't need to forward merge these 2 branches. Exiting..."
+      @logger.info "SCRIPT_LOGGER:: We don't need to Merge these 2 branches. Exiting..."
       return false
     end
 
@@ -150,18 +149,18 @@ class ForwardMerge
     end
 
     if @git_utilities.system_command("git checkout -b #{@options[:base_branch]} origin/#{@options[:base_branch]} > /dev/null 2>&1", true) != true
-      @logger.warn "SCRIPT_LOGGER:: Failed to checkout #{@options[:base_branch]} from remote, checking if locally available"
+      @logger.warn "SCRIPT_LOGGER:: Failed to checkout #{@options[:base_branch]} from remote, checking if locally available."
       if @git_utilities.system_command("git checkout #{@options[:base_branch]} > /dev/null 2>&1", true) != true
-        @logger.error 'SCRIPT_LOGGER:: Failed to checkout branch locally, unable to continue'
+        @logger.error 'SCRIPT_LOGGER:: Failed to checkout branch locally, unable to continue.'
         return false
       end
     end
     @logger.info "SCRIPT_LOGGER:: Successfully checked out the #{@options[:base_branch]} branch"
-    if @git_utilities.system_command("git checkout -b #{forward_branch}", true) != true
+    if @git_utilities.system_command("git checkout -b #{merge_branch}", true) != true
       @logger.error 'SCRIPT_LOGGER:: Failed to create new branch.'
       return false
     else
-      @logger.info 'SCRIPT_LOGGER:: Branch created'
+      @logger.info 'SCRIPT_LOGGER:: Branch created.'
     end
   end
 
@@ -176,13 +175,13 @@ class ForwardMerge
   def perform_push
     pushed = false
     if @options[:push]
-      @logger.info "SCRIPT_LOGGER:: Pushing #{forward_branch} to origin"
-      @git_utilities.push_to_origin(forward_branch)
+      @logger.info "SCRIPT_LOGGER:: Pushing #{merge_branch} to origin."
+      @git_utilities.push_to_origin(merge_branch)
       pushed = true
     elsif !@options[:automatic]
       if @git_utilities.user_input_to_continue('SCRIPT_LOGGER:: Do you want to push to origin? (Required for pull request)(y/n)')
-        @logger.info "SCRIPT_LOGGER:: Pushing #{forward_branch} to origin"
-        @git_utilities.push_to_origin(forward_branch)
+        @logger.info "SCRIPT_LOGGER:: Pushing #{merge_branch} to origin."
+        @git_utilities.push_to_origin(merge_branch)
         pushed = true
       else
         exit
@@ -193,22 +192,22 @@ class ForwardMerge
 
   def force_merge_check
     return unless @options[:force_merge]
-    @git_utilities.final_clean_merge(@options[:base_branch], forward_branch)
+    @git_utilities.final_clean_merge(@options[:base_branch], merge_branch)
   end
 
   def github_automatic_ops
     return if @options[:automatic]
-    @git_utilities.system_command("git diff #{@options[:base_branch]} origin/#{forward_branch}", false)
+    @git_utilities.system_command("git diff #{@options[:base_branch]} origin/#{merge_branch}", false)
     return true unless @git_utilities.user_input_to_continue('SCRIPT_LOGGER:: Based on the above diff, do you want to create a pull request? (y/n)')
-    @github_utilities.forward_merge_pull_request(forward_branch, @options[:base_branch], @token)
+    @github_utilities.merger_pull_request(merge_branch, @options[:base_branch], @token)
     false
   end
 
   def perform_github_ops(pushed)
     if @options[:generate_pull_request]
       if pushed
-        @logger.info 'SCRIPT_LOGGER:: Creating pull request'
-        @github_utilities.forward_merge_pull_request(forward_branch, @options[:base_branch], @token)
+        @logger.info 'SCRIPT_LOGGER:: Creating pull request.'
+        @github_utilities.merger_pull_request(merge_branch, @options[:base_branch], @token)
       else
         @logger.info 'SCRIPT_LOGGER:: Unable to create pull request, as the changes have not been pushed.'
       end
@@ -217,6 +216,6 @@ class ForwardMerge
     force_merge_check
     return false unless github_automatic_ops
     return false unless @git_utilities.user_input_to_continue('SCRIPT_LOGGER:: Do you want to finish the merge without a pull request? (y/n)')
-    @git_utilities.final_clean_merge(@options[:base_branch], forward_branch)
+    @git_utilities.final_clean_merge(@options[:base_branch], merge_branch)
   end
 end
