@@ -96,9 +96,8 @@ module Gitkeep
       c.switch %i[t test_mode]
       c.action do |_global_options, options, _args|
         logger = Logger.new(STDOUT)
-        logger.info "starting"
         git_utilities = GitUtils.new(logger, options[:location], options[:test_mode])
-              logger.info "utils created"
+        
         if options[:complete]
           options.each_key do |key|
             if key.length > 2

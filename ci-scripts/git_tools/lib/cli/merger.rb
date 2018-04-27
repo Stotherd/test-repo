@@ -13,6 +13,7 @@ class Merger
     end
     @github_utilities = GitHubUtils.new(
       logger,
+      path,
       git_utilities.origin_repo_name,
       options[:test_mode]
     )

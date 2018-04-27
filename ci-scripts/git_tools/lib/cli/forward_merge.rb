@@ -90,8 +90,7 @@ class ForwardMerge
     remote_forward_branch_present = false
 
     if @git_utilities.remote_branch?(@options[:merge_branch]) == false
-      @logger.error
-      "SCRIPT_LOGGER:: Remote branch #{@options[:merge_branch]} does not exist."
+      @logger.error "SCRIPT_LOGGER:: Remote branch #{@options[:merge_branch]} does not exist."
       return [remote_merge_branch_present, local_forward_branch_present, remote_forward_branch_present]
     end
 

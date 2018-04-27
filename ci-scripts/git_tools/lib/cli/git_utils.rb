@@ -6,9 +6,8 @@ require 'git'
 class GitUtils
   def initialize(log, path, test_mode)
     @logger = log
-    @path = 'git --git-dir=#{path} rev-parse --show-toplevel'
-    @logger.info "path is #{@path.chomp}"
-    @git ||= Git.open(@path.chomp)
+    @path = path
+    @git ||= Git.open(path.chomp)
     @test_mode = test_mode
   end
 
