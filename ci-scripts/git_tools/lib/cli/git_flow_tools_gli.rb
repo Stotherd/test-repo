@@ -96,7 +96,9 @@ module Gitkeep
       c.switch %i[t test_mode]
       c.action do |_global_options, options, _args|
         logger = Logger.new(STDOUT)
-        git_utilities = GitUtils.new(logger, options[:test_mode])
+        logger.info "starting"
+        git_utilities = GitUtils.new(logger, options[:location], options[:test_mode])
+              logger.info "utils created"
         if options[:complete]
           options.each_key do |key|
             if key.length > 2
@@ -110,7 +112,7 @@ module Gitkeep
         elsif options[:output_remote]
           puts git_utilities.list_remote_branches
         else
-          merger = Merger.new(logger, git_utilities, options)
+          merger = Merger.new(logger, options[:location], git_utilities, options)
           merger.merge
           logger.info 'Exiting...'
         end
@@ -138,7 +140,7 @@ module Gitkeep
       c.switch %i[t test_mode]
       c.action do |_global_options, options, _args|
         logger = Logger.new(STDOUT)
-        git_utilities = GitUtils.new(logger, options[:test_mode])
+        git_utilities = GitUtils.new(logger, options[:location], options[:test_mode])
         if options[:complete]
           options.each_key do |key|
             if key.length > 2
