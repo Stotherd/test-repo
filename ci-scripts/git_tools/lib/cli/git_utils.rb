@@ -16,6 +16,7 @@ class GitUtils
       @logger.info "TEST_MODE:: #{command}"
       return true
     end
+    @logger.info "COMMAND:: #{command}"
     system(command)
   end
 
@@ -23,11 +24,11 @@ class GitUtils
                    branch_to_be_deleted,
                    clean_remote)
     @logger.info "SCRIPT_LOGGER:: Checking out #{branch_you_were_on}"
-    system_command("git --git-dir=#{@path} merge --abort > /dev/null 2>&1", true)
-    system_command("git --git-dir=#{@path} checkout #{branch_you_were_on}  > /dev/null 2>&1", true)
-    system_command("git --git-dir=#{@path} branch -D #{branch_to_be_deleted}   > /dev/null 2>&1", true)
+    system_command("git --git-dir=#{@path}.git merge --abort > /dev/null 2>&1", true)
+    system_command("git --git-dir=#{@path}.git checkout #{branch_you_were_on}  > /dev/null 2>&1", true)
+    system_command("git --git-dir=#{@path}.git branch -D #{branch_to_be_deleted}   > /dev/null 2>&1", true)
     if clean_remote == true
-      system_command("git --git-dir=#{@path} push origin --delete #{branch_to_be_deleted} > /dev/null 2>&1", true)
+      system_command("git --git-dir=#{@path}.git push origin --delete #{branch_to_be_deleted} > /dev/null 2>&1", true)
     end
     @logger.info "SCRIPT_LOGGER:: Any merge in progress was aborted, and the
     #{branch_to_be_deleted} branch deleted."
@@ -116,8 +117,8 @@ class GitUtils
   end
 
   def branch_up_to_date?(branch_you_are_on, branch_to_be_checked_against)
-    sha_of_to_be_merged = "git --git-dir=#{@path} rev-parse origin/#{branch_to_be_checked_against}"
-    tree_of_branch_you_are_on = "git --git-dir=#{@path} log --pretty=short #{branch_you_are_on}"
+    sha_of_to_be_merged = "git --git-dir=#{@path}.git rev-parse origin/#{branch_to_be_checked_against}"
+    tree_of_branch_you_are_on = "git --git-dir=#{@path}.git log --pretty=short #{branch_you_are_on}"
 
     if tree_of_branch_you_are_on.include? sha_of_to_be_merged
       @logger.info "SCRIPT_LOGGER:: Head of #{branch_to_be_checked_against} is present in #{branch_you_are_on}."
@@ -147,7 +148,7 @@ class GitUtils
   end
 
   def safe_merge(base_branch, to_be_merged_in_branch)
-    unless system_command("git --git-dir=#{@path} merge origin/#{to_be_merged_in_branch} --no-edit", true)
+    unless system_command("git --git-dir=#{@path}.git merge origin/#{to_be_merged_in_branch} --no-edit", true)
       @logger.info "SCRIPT_LOGGER:: unable to merge - CTRL-C to exit or press
       enter to continue after all conflicts resolved"
       until merge_complete?(to_be_merged_in_branch)
@@ -161,7 +162,7 @@ class GitUtils
   end
 
   def merge_complete?(to_be_merged_in_branch)
-    system_command("git --git-dir=#{@path} merge origin/#{to_be_merged_in_branch} --no-edit", true)
+    system_command("git --git-dir=#{@path}.git merge origin/#{to_be_merged_in_branch} --no-edit", true)
   end
 
   def user_input_to_continue(warning)
@@ -175,7 +176,7 @@ class GitUtils
   end
 
   def final_clean_merge(base_branch, head_branch)
-    if system_command("git --git-dir=#{@path} checkout #{base_branch} > /dev/null 2>&1", true) != true
+    if system_command("git --git-dir=#{@path}.git checkout #{base_branch} > /dev/null 2>&1", true) != true
       logger.error 'SCRIPT_LOGGER:: Failed to checkout branch locally, unable
       to continue'
       exit
