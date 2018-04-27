@@ -24,6 +24,8 @@ module Gitkeep
     desc 'Cut a release branch and perform post release steps'
     arg_name '<args>...', %i[multiple]
     command :cut_release do |c|
+      c.desc 'Location to run from'
+      c.flag %i[l location], type: String
       c.desc 'The version number to be used'
       c.flag %i[v version], type: String
       c.desc 'sha to be used (Default head of develop)'
@@ -44,6 +46,8 @@ module Gitkeep
       end
     end
     command :notify_branch_creation do |c|
+      c.desc 'Location to run from'
+      c.flag %i[l location], type: String
       c.desc 'The new release branch name'
       c.flag %i[v version], type: String
       c.desc 'The previous release branch name'
@@ -60,6 +64,8 @@ module Gitkeep
       end
     end
     command :open_prs do |c|
+      c.desc 'Location to run from'
+      c.flag %i[l location], type: String
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info 'Get open PRs'
@@ -69,6 +75,8 @@ module Gitkeep
       end
     end
     command :closed_prs do |c|
+      c.desc 'Location to run from'
+      c.flag %i[l location], type: String
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info 'Get closed PRs'
@@ -80,7 +88,8 @@ module Gitkeep
     command :pr do |c|
       c.desc 'The PR number'
       c.flag %i[n pr_number], type: String
-
+      c.desc 'Location to run from'
+      c.flag %i[l location], type: String
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info 'Get PR'
@@ -90,6 +99,8 @@ module Gitkeep
       end
     end
     command :releases do |c|
+      c.desc 'Location to run from'
+      c.flag %i[l location], type: String
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info 'Get Releases'
@@ -99,6 +110,8 @@ module Gitkeep
       end
     end
     command :commits_for_release do |c|
+      c.desc 'Location to run from'
+      c.flag %i[l location], type: String
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info 'Get commits for release'
@@ -108,9 +121,10 @@ module Gitkeep
       end
     end
     command :prs_for_release do |c|
+      c.desc 'Location to run from'
+      c.flag %i[l location], type: String
       c.desc 'The previous release branch name'
       c.flag %i[p previous_branch], type: String
-
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info 'Get PRs for release'
@@ -122,7 +136,8 @@ module Gitkeep
     command :single_commit do |c|
       c.desc 'The commit sha'
       c.flag %i[s sha], type: String
-
+      c.desc 'Location to run from'
+      c.flag %i[l location], type: String
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info 'Get commit'
@@ -136,7 +151,8 @@ module Gitkeep
       c.flag %i[v version], type: String
       c.desc 'Test Mode - does no external operations but logs web requests and git operations instead.'
       c.switch %i[t test_mode]
-
+      c.desc 'Location to run from'
+      c.flag %i[l location], type: String
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info "Adding tag cut-#{options[:version]}"
@@ -149,7 +165,8 @@ module Gitkeep
       c.flag %i[v version], type: String
       c.desc 'build number'
       c.flag %i[b build_number], type: String
-
+      c.desc 'Location to run from'
+      c.flag %i[l location], type: String
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         dashboard_utils = DashboardUtils.new(logger, false)
@@ -161,7 +178,8 @@ module Gitkeep
       c.switch %i[t test_mode]
       c.desc 'branch to add PR testing to'
       c.flag %i[b branch_name], type: String
-
+      c.desc 'Location to run from'
+      c.flag %i[l location], type: String
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info "Adding pr testing to #{options[:branch_name]}"
@@ -176,6 +194,8 @@ module Gitkeep
     end
 
     command :xcode_version_boost do |c|
+      c.desc 'Location to run from'
+      c.flag %i[l location], type: String
       c.desc 'test mode'
       c.switch %i[t test_mode]
       c.desc 'The next version number to be used'
@@ -208,7 +228,8 @@ module Gitkeep
       c.flag %i[b base_branch], type: String
       c.desc 'branch to be compare against (normally the release branch)'
       c.flag %i[o other_branch], type: String
-
+      c.desc 'Location to run from'
+      c.flag %i[l location], type: String
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info "Checking #{options[:base_branch]} against #{options[:other_branch]}"

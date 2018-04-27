@@ -69,6 +69,8 @@ module Gitkeep
     desc help_text
     arg_name '<args>...', %i[multiple]
     command :merger do |c|
+      c.desc 'Location to run from'
+      c.flag %i[l location], type: String
       c.desc 'Pass a base_branch'
       c.flag %i[b base_branch], type: String
       c.desc 'Pass a merge branch'
@@ -117,6 +119,8 @@ module Gitkeep
     desc 'Clean up a previous aborted  merge request'
     arg_name '<args>...', %i[multiple]
     command :clean do |c|
+      c.desc 'Location to run from'
+      c.flag %i[l location], type: String
       c.desc 'Pass a base_branch'
       c.flag %i[b base_branch], type: String
       c.desc 'Pass a merge branch'

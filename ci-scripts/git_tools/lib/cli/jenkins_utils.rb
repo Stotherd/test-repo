@@ -56,8 +56,8 @@ class JenkinsUtils
   end
 
   def update_jenkins_whitelist_pr_test_branches(branch, oauth_token)
-    update_jenkins_whitelist_branch(branch, oauth_token, 'pull-request-tester')
-    update_jenkins_whitelist_branch(branch, oauth_token, 'Appium-PR-Tester')
+    update_jenkins_whitelist_branch(branch, oauth_token, 'register-kif-pr-tester-swift4')
+    update_jenkins_whitelist_branch(branch, oauth_token, 'register-appium-pr-tester-swift4')
   end
 
   def build_http_request(jenkins_job, uri_tail, type, body, oauth_token)

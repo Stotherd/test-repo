@@ -7,9 +7,10 @@ require_relative 'jenkins_utils'
 require_relative 'xcode_utils'
 
 class ReleaseCutter
-  def initialize(logger, git_utilities, options)
+  def initialize(logger, path, git_utilities, options)
     @logger = logger
     @git_utilities = git_utilities
+    @path = path
     token_utilities = TokenUtils.new(logger)
     @token = token_utilities.find('gitkeep')
     @github_utilities = GitHubUtils.new(logger, git_utilities.origin_repo_name, options[:test_mode])
@@ -55,10 +56,10 @@ class ReleaseCutter
 
   def perform_initial_git_operations
     return false unless @git_utilities.branches_in_sync?(develop_branch, previous_release_branch)
-    @logger.info 'Cut point tagged'
     return false unless xcode_version_boost
     return false unless verify_develop_state
     @git_utilities.add_tag("cut-#{@options[:version]}")
+    @logger.info 'Cut point tagged'
     @logger.info "Release branch will be called #{release_branch}"
     @git_utilities.new_branch(release_branch)
     @git_utilities.push_to_origin(release_branch)
@@ -69,7 +70,7 @@ class ReleaseCutter
     jenkins_utils = JenkinsUtils.new(@logger, @options[:test_mode])
     jenkins_utils.update_jenkins_whitelist_pr_test_branches(release_branch, @token)
     jenkins_utils.update_build_branch('main_regression_multijob_branch', release_branch, @token, 'REGISTER_BRANCH')
-    jenkins_utils.update_build_branch('Register-Beta-iTunes-Builder', release_branch, @token, 'BRANCH_TO_BUILD')
+    jenkins_utils.update_build_branch('register-beta-itc-builder-swift4', release_branch, @token, 'BRANCH_TO_BUILD')
     jenkins_utils.update_build_branch('iOS-develop-release-merge-checker', release_branch, @token, 'RELEASE_BRANCH')
     dashboard_utils = DashboardUtils.new(@logger, @options[:test_mode])
     dashboard_utils.dashboard_cut_new_release(@options[:version], release_branch)
@@ -142,7 +143,7 @@ class ReleaseCutter
   def commits_for_release
     return nil unless verify_branch?
     @logger.info "Finding commits that are in origin/develop and not in origin/#{@options[:previous_branch]} (no merges)"
-    str_result = `git log origin/#{@options[:previous_branch]}..origin/develop --oneline --no-merges`
+    str_result = "git --git-dir=#{@path} log origin/#{@options[:previous_branch]}..origin/develop --oneline --no-merges"
     str_array = str_result.split "\n"
     result = []
     str_array.each do |str_|
@@ -154,7 +155,7 @@ class ReleaseCutter
   def commit_shas_for_release
     return nil unless verify_branch?
     @logger.info "Finding commits that are in origin/develop and not in origin/#{@options[:previous_branch]} (no merges)"
-    str_result = `git log origin/#{@options[:previous_branch]}..origin/develop --format=format:%h --no-merges`
+    str_result = "git --git-dir=#{@path}log origin/#{@options[:previous_branch]}..origin/develop --format=format:%h --no-merges"
     str_array = str_result.split "\n"
     result = []
     str_array.each do |str_|
@@ -164,7 +165,7 @@ class ReleaseCutter
   end
 
   def branch_cut_date
-    cut_date = `git log -1 --format=%ai cut-#{@options[:previous_branch]}`
+    cut_date = "git --git-dir=#{@path} log -1 --format=%ai cut-#{@options[:previous_branch]}"
     cut_date.split(' ').first
   end
 

@@ -5,7 +5,7 @@ require 'net/http'
 require 'json'
 require 'ostruct'
 class GitHubUtils
-  def initialize(log, repo_id, test_mode)
+  def initialize(log, path, repo_id, test_mode)
     @test_mode = test_mode
     @logger = log
     @repo_id = repo_id
@@ -72,7 +72,7 @@ class GitHubUtils
       response to network request was: '
       @logger.error body
       @logger.error "SCRIPT_LOGGER:: reverting back to #{current_branch}"
-      system("git checkout #{current_branch} > /dev/null 2>&1")
+      system("git --git-dir=#{@path} checkout #{current_branch} > /dev/null 2>&1")
       @logger.error "SCRIPT_LOGGER::
       ================ The pull request was rejected by github. ================
       Please see log above for an indication of the error. The #{current_branch}
@@ -103,7 +103,7 @@ class GitHubUtils
 
   def setup_status_checks(branch_name, oauth_token)
     status_checks = {   strict: false,
-                        contexts: %w[Appium KIF] }
+                        contexts: %w[Appium-Swift4 Unit\ and\ KIF\ PR\ Tests] }
     required_pr_reviews = {   dismiss_stale_reviews: true,
                               require_code_owner_reviews: false }
     json_for_protection = { required_status_checks: status_checks,
