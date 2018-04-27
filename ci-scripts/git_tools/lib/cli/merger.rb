@@ -158,7 +158,7 @@ class Merger
       end
     end
     @logger.info "SCRIPT_LOGGER:: Successfully checked out the #{@options[:base_branch]} branch"
-    if @git_utilities.system_command("git checkout -b #{merge_branch}", true) != true
+    if @git_utilities.system_command("git --git-dir=#{@path}.git checkout -b #{merge_branch}", true) != true
       @logger.error 'SCRIPT_LOGGER:: Failed to create new branch.'
       return false
     else
