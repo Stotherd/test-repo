@@ -13,7 +13,7 @@ class ReleaseCutter
     @path = path
     token_utilities = TokenUtils.new(logger)
     @token = token_utilities.find('gitkeep')
-    @github_utilities = GitHubUtils.new(logger, git_utilities.origin_repo_name, options[:test_mode])
+    @github_utilities = GitHubUtils.new(logger, path, git_utilities.origin_repo_name, options[:test_mode])
     @options = options
   end
 

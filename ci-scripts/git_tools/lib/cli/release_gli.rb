@@ -41,6 +41,7 @@ module Gitkeep
         logger = Logger.new(STDOUT)
         logger.info "Cutting release for #{options[:version]}."
         git_utilities = GitUtils.new(logger, options[:location], options[:test_mode])
+        logger.info "Cutting release for #{options[:version]}."
         release_cutter = ReleaseCutter.new(logger, options[:location], git_utilities, options)
         release_cutter.cut_release
       end

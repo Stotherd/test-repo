@@ -117,8 +117,11 @@ class GitUtils
   end
 
   def branch_up_to_date?(branch_you_are_on, branch_to_be_checked_against)
-    sha_of_to_be_merged = "git --git-dir=#{@path}.git rev-parse origin/#{branch_to_be_checked_against}"
-    tree_of_branch_you_are_on = "git --git-dir=#{@path}.git log --pretty=short #{branch_you_are_on}"
+    sha_of_to_be_merged = `git --git-dir=#{@path}.git rev-parse origin/#{branch_to_be_checked_against}`
+
+
+    tree_of_branch_you_are_on = `git --git-dir=#{@path}.git log --pretty=short #{branch_you_are_on}`
+
 
     if tree_of_branch_you_are_on.include? sha_of_to_be_merged
       @logger.info "SCRIPT_LOGGER:: Head of #{branch_to_be_checked_against} is present in #{branch_you_are_on}."
