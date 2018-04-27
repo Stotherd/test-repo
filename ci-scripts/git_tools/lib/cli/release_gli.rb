@@ -40,8 +40,8 @@ module Gitkeep
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info "Cutting release for #{options[:version]}."
-        git_utilities = GitUtils.new(logger, options[:test_mode])
-        release_cutter = ReleaseCutter.new(logger, git_utilities, options)
+        git_utilities = GitUtils.new(logger, options[:location], options[:test_mode])
+        release_cutter = ReleaseCutter.new(logger, options[:location], git_utilities, options)
         release_cutter.cut_release
       end
     end
@@ -57,8 +57,8 @@ module Gitkeep
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info "Sending branch creation notification: #{options[:version]}"
-        git_utilities = GitUtils.new(logger, options[:test_mode])
-        release_cutter = ReleaseCutter.new(logger, git_utilities, options)
+        git_utilities = GitUtils.new(logger, options[:location], options[:test_mode])
+        release_cutter = ReleaseCutter.new(logger, options[:location], git_utilities, options)
         notification = Notification.new(logger, git_utilities, options)
         notification.email_branch_creation(release_cutter.prs_for_release)
       end
@@ -69,8 +69,8 @@ module Gitkeep
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info 'Get open PRs'
-        git_utilities = GitUtils.new(logger, options[:test_mode])
-        release_cutter = ReleaseCutter.new(logger, git_utilities, options)
+        git_utilities = GitUtils.new(logger, options[:location], options[:test_mode])
+        release_cutter = ReleaseCutter.new(logger, options[:location], git_utilities, options)
         release_cutter.open_pull_requests
       end
     end
@@ -80,8 +80,8 @@ module Gitkeep
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info 'Get closed PRs'
-        git_utilities = GitUtils.new(logger, options[:test_mode])
-        release_cutter = ReleaseCutter.new(logger, git_utilities, options)
+        git_utilities = GitUtils.new(logger, options[:location], options[:test_mode])
+        release_cutter = ReleaseCutter.new(logger, options[:location], git_utilities, options)
         release_cutter.closed_pull_requests
       end
     end
@@ -93,8 +93,8 @@ module Gitkeep
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info 'Get PR'
-        git_utilities = GitUtils.new(logger, options[:test_mode])
-        release_cutter = ReleaseCutter.new(logger, git_utilities, options)
+        git_utilities = GitUtils.new(logger, options[:location], options[:test_mode])
+        release_cutter = ReleaseCutter.new(logger, options[:location], git_utilities, options)
         release_cutter.single_pull_request
       end
     end
@@ -104,8 +104,8 @@ module Gitkeep
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info 'Get Releases'
-        git_utilities = GitUtils.new(logger, options[:test_mode])
-        release_cutter = ReleaseCutter.new(logger, git_utilities, options)
+        git_utilities = GitUtils.new(logger, options[:location], options[:test_mode])
+        release_cutter = ReleaseCutter.new(logger, options[:location], git_utilities, options)
         release_cutter.releases
       end
     end
@@ -115,8 +115,8 @@ module Gitkeep
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info 'Get commits for release'
-        git_utilities = GitUtils.new(logger, options[:test_mode])
-        release_cutter = ReleaseCutter.new(logger, git_utilities, options)
+        git_utilities = GitUtils.new(logger, options[:location], options[:test_mode])
+        release_cutter = ReleaseCutter.new(logger, options[:location], git_utilities, options)
         puts release_cutter.commits_for_release
       end
     end
@@ -128,8 +128,8 @@ module Gitkeep
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info 'Get PRs for release'
-        git_utilities = GitUtils.new(logger, options[:test_mode])
-        release_cutter = ReleaseCutter.new(logger, git_utilities, options)
+        git_utilities = GitUtils.new(logger, options[:location], options[:test_mode])
+        release_cutter = ReleaseCutter.new(logger, options[:location], git_utilities, options)
         puts release_cutter.prs_for_release
       end
     end
@@ -141,8 +141,8 @@ module Gitkeep
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info 'Get commit'
-        git_utilities = GitUtils.new(logger, options[:test_mode])
-        release_cutter = ReleaseCutter.new(logger, git_utilities, options)
+        git_utilities = GitUtils.new(logger, options[:location], options[:test_mode])
+        release_cutter = ReleaseCutter.new(logger, options[:location], git_utilities, options)
         release_cutter.single_commit
       end
     end
@@ -156,7 +156,7 @@ module Gitkeep
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info "Adding tag cut-#{options[:version]}"
-        git_utilities = GitUtils.new(logger, options[:test_mode])
+        git_utilities = GitUtils.new(logger, options[:location], options[:test_mode])
         git_utilities.add_tag("cut-#{options[:version]}")
       end
     end
@@ -187,8 +187,8 @@ module Gitkeep
         token_utilities = TokenUtils.new(logger)
         token = token_utilities.find('gitkeep')
         jenkins_utils.update_jenkins_whitelist_pr_test_branches(options[:branch_name], token)
-        git_utilities = GitUtils.new(logger, options[:test_mode])
-        github_utilities = GitHubUtils.new(logger, git_utilities.origin_repo_name, options[:test_mode])
+        git_utilities = GitUtils.new(logger, options[:location], options[:test_mode])
+        github_utilities = GitHubUtils.new(logger, options[:location], git_utilities.origin_repo_name, options[:test_mode])
         github_utilities.setup_status_checks(options[:branch_name], token)
       end
     end
@@ -202,8 +202,8 @@ module Gitkeep
       c.flag %i[n next_version], type: String
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
-        git_utilities = GitUtils.new(logger, options[:test_mode])
-        release_cutter = ReleaseCutter.new(logger, git_utilities, options)
+        git_utilities = GitUtils.new(logger, options[:location], options[:test_mode])
+        release_cutter = ReleaseCutter.new(logger, options[:location], git_utilities, options)
         release_cutter.xcode_version_boost
       end
     end
@@ -233,7 +233,7 @@ module Gitkeep
       c.action do |_global_option, options, _args|
         logger = Logger.new(STDOUT)
         logger.info "Checking #{options[:base_branch]} against #{options[:other_branch]}"
-        git_utilities = GitUtils.new(logger, options[:test_mode])
+        git_utilities = GitUtils.new(logger, options[:location], options[:test_mode])
         if git_utilities.branches_in_sync?(options[:base_branch], options[:other_branch])
           logger.info "Branch #{options[:other_branch]} is present in #{options[:base_branch]}"
         else
